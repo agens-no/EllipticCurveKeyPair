@@ -327,9 +327,9 @@ public struct EllipticCurveKeyPair {
         
         lazy var der: String = {
             var lines = String()
-            lines.append("-----BEGIN PUBLIC KEY-----")
+            lines.append("-----BEGIN PUBLIC KEY-----\n")
             lines.append(self.rawWithHeaders.base64EncodedString())
-            lines.append("-----END PUBLIC KEY-----")
+            lines.append("\n-----END PUBLIC KEY-----")
             return lines
         }()
         
