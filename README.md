@@ -79,6 +79,11 @@ A use case could be
 ## Keywords
 Security framework, Swift 3, Swift, SecKeyRawVerify, SecKeyGeneratePair, SecItemCopyMatching
 
+## Credits
+
+- [TrailOfBits](https://github.com/trailofbits/SecureEnclaveCrypto) published some objective-c code a while back which was to great help.
+- Quinn "the Eskimo!", Apple, was to [great help](https://forums.developer.apple.com/message/84684#84684) with getting the correct format for the key.
+
 ## Feedback
 
 We would 😍 to hear your opinion about this library. Wether you like or don't. Please file an issue if there's something you would like like improved. Reach me on twitter as [@hfossli](https://twitter.com/hfossli).
