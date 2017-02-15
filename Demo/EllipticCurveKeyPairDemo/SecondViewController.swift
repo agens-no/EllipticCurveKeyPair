@@ -32,7 +32,8 @@ class SecondViewController: UIViewController {
             let privateLabel = "no.agens.sign.private"
             let prompt = "Confirm payment"
             let sha256: (Data) -> Data = { return ELCKPCommonCryptoAccess.sha256Digest(for: $0) }
-            let helper = EllipticCurveKeyPair.Helper(publicLabel: publicLabel, privateLabel: privateLabel, operationPrompt: prompt, sha256: sha256)
+            let accessControl = try! EllipticCurveKeyPair.Helper.createAccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly)
+            let helper = EllipticCurveKeyPair.Helper(publicLabel: publicLabel, privateLabel: privateLabel, operationPrompt: prompt, sha256: sha256, accessControl: accessControl)
             return EllipticCurveKeyPair.Manager(helper: helper)
         }()
     }

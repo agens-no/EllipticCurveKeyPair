@@ -77,8 +77,7 @@ public struct EllipticCurveKeyPair {
                 cache = keyPair
                 return keyPair
             }
-            let accessControl = try helper.accessControl(with: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly)
-            let keyPair = try helper.generate(accessControl: accessControl)
+            let keyPair = try helper.generate()
             cache = keyPair
             return keyPair
         }
@@ -100,6 +99,9 @@ public struct EllipticCurveKeyPair {
         // A function performing sha256 and returning the result
         let sha256: (Data) -> Data
         
+        // The access control used to manage the access to the keypair
+        let accessControl: SecAccessControl
+        
         func get() throws -> (`public`: PublicKey, `private`: PrivateKey) {
             do {
                 let publicKey = try Query.getPublicKey(labeled: publicLabel)
@@ -110,12 +112,12 @@ public struct EllipticCurveKeyPair {
             }
         }
         
-        func generate(accessControl: SecAccessControl) throws -> (`public`: PublicKey, `private`: PrivateKey) {
+        func generate() throws -> (`public`: PublicKey, `private`: PrivateKey) {
             
             let privateKeyParams: [String: Any] = [
                 kSecAttrLabel as String: privateLabel,
                 kSecAttrIsPermanent as String: true,
-                kSecAttrAccessControl as String: accessControl,
+                kSecAttrAccessControl as String: self.accessControl,
                 kSecUseOperationPrompt as String: self.operationPrompt,
                 ]
             
@@ -190,32 +192,28 @@ public struct EllipticCurveKeyPair {
         func encrypt(_ digest: Data, publicKey: PublicKey) throws -> Data {
             var error : Unmanaged<CFError>?
             let result = SecKeyCreateEncryptedData(publicKey.underlying, SecKeyAlgorithm.eciesEncryptionStandardX963SHA256AESGCM, digest as CFData, &error)
-            guard let data = result as? Data else {
-                throw Error.fromError(error)
+            guard let data = result else {
+                throw Error.fromError(error, message: "Could not encrypt")
             }
-            return data
+            return data as Data
         }
         
         @available(iOS 10.3, *)
         func decrypt(_ digest: Data, privateKey: PrivateKey) throws -> Data {
             var error : Unmanaged<CFError>?
             let result = SecKeyCreateDecryptedData(privateKey.underlying, SecKeyAlgorithm.eciesEncryptionStandardX963SHA256AESGCM, digest as CFData, &error)
-            guard let data = result as? Data else {
-                throw Error.fromError(error)
+            guard let data = result else {
+                throw Error.fromError(error, message: "Could not decrypt")
             }
-            return data
+            return data as Data
         }
         
         @available(iOSApplicationExtension 9.0, *)
-        func accessControl(with protection: CFString = kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly, flags: SecAccessControlCreateFlags = [.userPresence, .privateKeyUsage]) throws -> SecAccessControl {
+        static func createAccessControl(protection: CFString = kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly, flags: SecAccessControlCreateFlags = [.userPresence, .privateKeyUsage]) throws -> SecAccessControl {
             var error: Unmanaged<CFError>?
             let accessControl = SecAccessControlCreateWithFlags(kCFAllocatorDefault, protection, flags, &error)
             guard accessControl != nil else {
-                if let error = error?.takeRetainedValue() as? Swift.Error {
-                    throw Error.inconcistency(message: error.localizedDescription)
-                } else {
-                    throw Error.inconcistency(message: "Tried creating access control object with flags \(flags) and protection \(protection)")
-                }
+                throw Error.fromError(error, message: "Tried creating access control object with flags \(flags) and protection \(protection)")
             }
             return accessControl!
         }
@@ -369,7 +367,7 @@ public struct EllipticCurveKeyPair {
                 throw Error.underlying(message: "Could not generate keypair", osStatus: status)
             }
             guard let keyRaw = matchResult as? Data else {
-                throw Error.inconcistency(message: "Tried reading public key bytes, but something went wrong. Expected data, but received \(matchResult)")
+                throw Error.inconcistency(message: "Tried reading public key bytes, but something went wrong. Expected data, but received \(String(describing: matchResult))")
             }
             var firstByte: [UInt8] = [UInt8](repeating: 0, count: 1)
             keyRaw.copyBytes(to: &firstByte, count: 1)
@@ -392,12 +390,14 @@ public struct EllipticCurveKeyPair {
         case underlying(message: String, osStatus: OSStatus)
         case inconcistency(message: String)
         
-        static func fromError(_ error: Any?) -> Error {
+        static func fromError(_ error: Any?, message: String? = nil) -> Error {
+            let errorString: String
             if let error = error as? Swift.Error {
-                return .inconcistency(message: error.localizedDescription)
+                errorString = error.localizedDescription
             } else {
-                return .inconcistency(message: "\(error)")
+                errorString = "\(error ?? "null")"
             }
+            return .inconcistency(message: "\(message ?? "")\(message != nil ? ". " : "")\(errorString)")
         }
     }
 }

@@ -32,7 +32,8 @@ class FirstViewController: UIViewController {
             let privateLabel = "no.agens.encrypt.private"
             let prompt = "Confirm payment"
             let sha256: (Data) -> Data = { return ELCKPCommonCryptoAccess.sha256Digest(for: $0) }
-            let helper = EllipticCurveKeyPair.Helper(publicLabel: publicLabel, privateLabel: privateLabel, operationPrompt: prompt, sha256: sha256)
+            let accessControl = try! EllipticCurveKeyPair.Helper.createAccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly)
+            let helper = EllipticCurveKeyPair.Helper(publicLabel: publicLabel, privateLabel: privateLabel, operationPrompt: prompt, sha256: sha256, accessControl: accessControl)
             return EllipticCurveKeyPair.Manager(helper: helper)
         }()
     }
@@ -80,6 +81,13 @@ class FirstViewController: UIViewController {
     }
     
     @IBAction func decrypt(_ sender: Any) {
+        unencryptedTextView.text = "..."
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            self.decrypt()
+        }
+    }
+    
+    func decrypt() {
         do {
             guard let input = Data(base64Encoded: encryptedTextView.text ?? "") else {
                 throw "Missing text in unencrypted text field"
