@@ -12,12 +12,19 @@ Sign, verify, encrypt and decrypt using the Secure Enclave.
 - export the public key as X.509 DER with proper ASN.1 header / structure
 - verify the signature with openssl in command line easily
 
+## Installation
+
+Just drag the `Sources/EllipticCurveKeyPair.swift` file into your xcode project. 
+
+## Usage
+
+See demo app for example.
 
 ## Verifying a signature
 
 In the demo app you'll see that each time you create a signature some useful information is logged to console.
 
-Example
+Example output
 
 ```sh
 #! /bin/sh
@@ -54,13 +61,7 @@ There's a lot of great possibilities with Secure Enclave. Here's some examples
 1. Encrypt a message using the public key
 1. Decrypt the message using the privat key – only accessible with touch id / device pin
 
-A use case could be
-
-1. Create the keypair
-1. Send the public key to server
-1. Encrypt a message using the public key on server
-1. Decrypt that message on device using the privat key – only accessible with touch id / device pin
-
+Only available on iOS 10
 
 ### Signing
 
