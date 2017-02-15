@@ -33,6 +33,7 @@ EOF
 ```
 
 In order to run this script you can
+
 1. paste it in to a file: `verify.sh`
 1. make the file executable: `chmod u+x verify.sh`
 1. run it: `./verify.sh`
