@@ -1,5 +1,5 @@
-EllipticCurveKeyPair
-====================
+EllipticCurveKeyPair 🔑🔑
+========================
 
 Sign, verify, encrypt and decrypt using the Secure Enclave.
 
