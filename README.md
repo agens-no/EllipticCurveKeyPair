@@ -14,15 +14,15 @@ Sign, verify, encrypt and decrypt using the Secure Enclave.
 
 ## Nitty-gritty 
 
-Apple released API for using the Secure Enclave (`kSecAttrTokenIDSecureEnclave`) in iOS 9. Using the Security Framework can be a little bit confusing. That's why I created this. You may use it as example code and guidance or you may use it as a micro framework. 
+Apple released an API for using the Secure Enclave (`kSecAttrTokenIDSecureEnclave`) in iOS 9. Using the Security Framework can be a little bit confusing. That’s why I created this. You may use it as example code and guidance or you may use it as a micro framework. 
 
-I found it tricky to figure out how to use the `SecKeyRawVerify`, `SecKeyGeneratePair` and `SecItemCopyMatching` c api's in Swift 3, but the implementation is quite straight forward thanks to awesome Swift 3 features.
+I found it tricky to figure out how to use the `SecKeyRawVerify`, `SecKeyGeneratePair` and `SecItemCopyMatching` C APIs in Swift 3, but the implementation is quite straight forward thanks to awesome Swift 3 features.
 
 ## Installation
 
-Just drag the `Sources/EllipticCurveKeyPair.swift` file into your xcode project. 
+Just drag the `Sources/EllipticCurveKeyPair.swift` file into your XCode project. 
 
-Too keep the source code here at a minimum you need to pass a sha256 function yourself in to this library because [CommonCrypto is missing a module map for swift](http://www.openradar.me/26276263). In the demo app you'll see how you can do that very easily.
+To keep the source code here at a minimum you need to pass a sha256 function in to this library yourself because [CommonCrypto is missing a module map for swift](http://www.openradar.me/26276263). In the demo app you'll see how you can do that very easily.
 
 ## Usage
 
@@ -30,7 +30,7 @@ See demo app for example.
 
 ## Verifying a signature
 
-In the demo app you'll see that each time you create a signature some useful information is logged to console.
+In the demo app you’ll see that each time you create a signature some useful information is logged to console.
 
 Example output
 
@@ -49,9 +49,9 @@ EOF
 
 In order to run this script you can
 
-1. paste it in to a file: `verify.sh`
-1. make the file executable: `chmod u+x verify.sh`
-1. run it: `./verify.sh`
+1. Paste it in to a file: `verify.sh`
+1. Make the file executable: `chmod u+x verify.sh`
+1. Run it: `./verify.sh`
 
 Then you should see
 ```sh
@@ -62,18 +62,18 @@ PS: This script will create 4 files in your current directory.
 
 ## Examples
 
-There's a lot of great possibilities with Secure Enclave. Here's some examples
+There are lots of great possibilities with Secure Enclave. Here are some examples
 
 ### Encrypting
 
 1. Encrypt a message using the public key
-1. Decrypt the message using the privat key – only accessible with touch id / device pin
+1. Decrypt the message using the private key – only accessible with touch id / device pin
 
 Only available on iOS 10
 
 ### Signing
 
-1. Sign some data received by server using the privat key – only accessible with touch id / device pin
+1. Sign some data received by server using the private key – only accessible with touch id / device pin
 1. Verify that the signature is valid using the public key
 
 A use case could be
@@ -95,20 +95,20 @@ Security framework, Swift 3, Swift, SecKeyRawVerify, SecKeyGeneratePair, SecItem
 
 [TrailOfBits](https://github.com/trailofbits/) published some objective-c code a while back which was to great help! Thanks for [sharing](https://blog.trailofbits.com/2016/06/28/start-using-the-secure-enclave-crypto-api/) Tidas and [SecureEnclaveCrypto](https://github.com/trailofbits/SecureEnclaveCrypto). They also got some other most interesting and capable projects. Check out the new VPN solution [Algo](https://github.com/trailofbits/algo).
 
-### Quinn "the Eskimo!", Apple
+### Quinn “the Eskimo!”, Apple
 
 He shared som [very valuable insights](https://forums.developer.apple.com/message/84684#84684) with regards to exporting the public key in the proper DER X.509 format.
 
 ## FAQ
 
 **Q: Why am I not being prompted with touch id / device pin on simulator?**  
-A: The simulator doesn't posess any secure enclave and therefore trying to access it would just lead to errors. For your leisure we store the private key in keychain instead of the secure enclave on simulator. This makes development faster and easier. The only diff [is a single line of code](https://github.com/agens-no/EllipticCurveKeyPair/blob/70c248e83e8c0aaf73a9c27a1bce4becfe257bba/Sources/EllipticCurveKeyPair.swift#L124-L137).
+A: The simulator doesn’t posess any secure enclave and therefore trying to access it would just lead to errors. For your leisure we store the private key in keychain instead of the secure enclave on simulator. This makes development faster and easier. The only diff [is a single line of code](https://github.com/agens-no/EllipticCurveKeyPair/blob/70c248e83e8c0aaf73a9c27a1bce4becfe257bba/Sources/EllipticCurveKeyPair.swift#L124-L137).
 
 **Q: Where can I learn more?**  
 A: Check out this video on [WWDC 2015](https://developer.apple.com/videos/play/wwdc2015/706/) about Security in general or [click here](https://developer.apple.com/videos/play/wwdc2015/706/?time=2069) to skip right to the section about the Secure Enclave.
 
 ## Feedback
 
-We would 😍 to hear your opinion about this library. Wether you like or don't. Please file an issue if there's something you would like to see improved. Reach me on twitter as [@hfossli](https://twitter.com/hfossli) if you have any questions at all 😀.
+We would 😍 to hear your opinion about this library. Wether you like or don’t. Please file an issue if there’s something you would like to see improved. Reach me on twitter as [@hfossli](https://twitter.com/hfossli) if you have any questions at all 😀.
 
 [<img src="http://static.agens.no/images/agens_logo_w_slogan_avenir_medium.png" width="340" />](http://agens.no/)
