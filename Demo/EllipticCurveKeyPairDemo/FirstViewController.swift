@@ -58,6 +58,7 @@ class FirstViewController: UIViewController {
             try Shared.keypair.deleteKeyPair()
             let key = try Shared.keypair.publicKey().data()
             publicKeyTextView.text = key.der
+            encryptedTextView.text = nil
         } catch {
             publicKeyTextView.text = "Error: \(error)"
         }
