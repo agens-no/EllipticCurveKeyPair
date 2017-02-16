@@ -91,14 +91,21 @@ Security framework, Swift 3, Swift, SecKeyRawVerify, SecKeyGeneratePair, SecItem
 
 ## Credits
 
-- [TrailOfBits](https://github.com/trailofbits/) published some objective-c code a while back which was to great help! Thanks for [sharing](https://blog.trailofbits.com/2016/06/28/start-using-the-secure-enclave-crypto-api/) Tidas and [SecureEnclaveCrypto](https://github.com/trailofbits/SecureEnclaveCrypto). 
-- Quinn "the Eskimo!", Apple, was to [great help](https://forums.developer.apple.com/message/84684#84684) with regards to exporting the public key in the proper DER X.509 format.
+### [TrailOfBits](https://github.com/trailofbits/)
+
+[TrailOfBits](https://github.com/trailofbits/) published some objective-c code a while back which was to great help! Thanks for [sharing](https://blog.trailofbits.com/2016/06/28/start-using-the-secure-enclave-crypto-api/) Tidas and [SecureEnclaveCrypto](https://github.com/trailofbits/SecureEnclaveCrypto). They also got some other most interesting and capable projects. Check out the new VPN solution [Algo](https://github.com/trailofbits/algo).
+
+### Quinn "the Eskimo!", Apple
+
+He shared som [very valuable insights](https://forums.developer.apple.com/message/84684#84684) with regards to exporting the public key in the proper DER X.509 format.
 
 ## FAQ
 
-**Q: On simulator I don't see any prompt**  
-A: For your leisure we store the private key in keychain instead of the secure enclave on simulator. This makes development faster and easier. The simulator doesn't posess any secure enclave. The only diff [is a single line of code](https://github.com/agens-no/EllipticCurveKeyPair/blob/70c248e83e8c0aaf73a9c27a1bce4becfe257bba/Sources/EllipticCurveKeyPair.swift#L124-L137).
+**Q: Why am I not being prompted with touch id / device pin on simulator?**  
+A: The simulator doesn't posess any secure enclave and therefore trying to access it would just lead to errors. For your leisure we store the private key in keychain instead of the secure enclave on simulator. This makes development faster and easier. The only diff [is a single line of code](https://github.com/agens-no/EllipticCurveKeyPair/blob/70c248e83e8c0aaf73a9c27a1bce4becfe257bba/Sources/EllipticCurveKeyPair.swift#L124-L137).
 
+**Q: Where can I learn more?**  
+A: Check out this video on [WWDC 2015](https://developer.apple.com/videos/play/wwdc2015/706/) about Security in general or [click here](https://developer.apple.com/videos/play/wwdc2015/706/?time=2069) to skip right to the section about the Secure Enclave.
 
 ## Feedback
 
