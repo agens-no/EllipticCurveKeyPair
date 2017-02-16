@@ -91,7 +91,7 @@ Security framework, Swift 3, Swift, SecKeyRawVerify, SecKeyGeneratePair, SecItem
 
 ## Credits
 
-### [TrailOfBits](https://github.com/trailofbits/)
+### TrailOfBits
 
 [TrailOfBits](https://github.com/trailofbits/) published some objective-c code a while back which was to great help! Thanks for [sharing](https://blog.trailofbits.com/2016/06/28/start-using-the-secure-enclave-crypto-api/) Tidas and [SecureEnclaveCrypto](https://github.com/trailofbits/SecureEnclaveCrypto). They also got some other most interesting and capable projects. Check out the new VPN solution [Algo](https://github.com/trailofbits/algo).
 
