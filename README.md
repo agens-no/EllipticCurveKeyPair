@@ -22,6 +22,8 @@ I found it tricky to figure out how to use the `SecKeyRawVerify`, `SecKeyGenerat
 
 Just drag the `Sources/EllipticCurveKeyPair.swift` file into your xcode project. 
 
+Too keep the source code here at a minimum you need to pass a sha256 function yourself in to this library because [CommonCrypto is missing a module map for swift](http://www.openradar.me/26276263). In the demo app you'll see how you can do that very easily.
+
 ## Usage
 
 See demo app for example.
