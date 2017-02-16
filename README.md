@@ -12,6 +12,12 @@ Sign, verify, encrypt and decrypt using the Secure Enclave.
 - export the public key as X.509 DER with proper ASN.1 header / structure
 - verify the signature with openssl in command line easily
 
+## Nitty-gritty 
+
+Apple released API for using the Secure Enclave (`kSecAttrTokenIDSecureEnclave`) in iOS 9. Using the Security Framework can be a little bit confusing. That's why I created this. You may use it as example code and guidance or you may use it as a micro framework. 
+
+I found it tricky to figure out how to use the `SecKeyRawVerify`, `SecKeyGeneratePair` and `SecItemCopyMatching` c api's in Swift 3, but the implementation is quite straight forward thanks to awesome Swift 3 features.
+
 ## Installation
 
 Just drag the `Sources/EllipticCurveKeyPair.swift` file into your xcode project. 
@@ -79,15 +85,15 @@ A use case could be
 
 
 ## Keywords
-Security framework, Swift 3, Swift, SecKeyRawVerify, SecKeyGeneratePair, SecItemCopyMatching
+Security framework, Swift 3, Swift, SecKeyRawVerify, SecKeyGeneratePair, SecItemCopyMatching, Apple, iOS, Mac OS
 
 ## Credits
 
-- [TrailOfBits](https://github.com/trailofbits/SecureEnclaveCrypto) published some objective-c code a while back which was to great help.
-- Quinn "the Eskimo!", Apple, was to [great help](https://forums.developer.apple.com/message/84684#84684) with getting the correct format for the key.
+- [TrailOfBits](https://github.com/trailofbits/) published some objective-c code a while back which was to great help! Thanks for [sharing](https://blog.trailofbits.com/2016/06/28/start-using-the-secure-enclave-crypto-api/) Tidas and [SecureEnclaveCrypto](https://github.com/trailofbits/SecureEnclaveCrypto). 
+- Quinn "the Eskimo!", Apple, was to [great help](https://forums.developer.apple.com/message/84684#84684) with regards to exporting the public key in the proper DER X.509 format.
 
 ## Feedback
 
-We would 😍 to hear your opinion about this library. Wether you like or don't. Please file an issue if there's something you would like like improved. Reach me on twitter as [@hfossli](https://twitter.com/hfossli).
+We would 😍 to hear your opinion about this library. Wether you like or don't. Please file an issue if there's something you would like to see improved. Reach me on twitter as [@hfossli](https://twitter.com/hfossli) if you have any questions at all 😀.
 
 [<img src="http://static.agens.no/images/agens_logo_w_slogan_avenir_medium.png" width="340" />](http://agens.no/)
