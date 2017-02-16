@@ -29,6 +29,9 @@ import Security
 public struct EllipticCurveKeyPair {
     
     // A stateful manager for using the secure enclave and keychain
+    // If there's a problem fetching the key pair this manager will naively just recreate new keypair
+    // If the manager is "too smart" in that sense you may use this manager as an example
+    // and create your own manager
     public final class Manager {
         
         public init(helper: Helper) {
