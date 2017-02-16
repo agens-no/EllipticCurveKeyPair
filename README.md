@@ -92,6 +92,12 @@ Security framework, Swift 3, Swift, SecKeyRawVerify, SecKeyGeneratePair, SecItem
 - [TrailOfBits](https://github.com/trailofbits/) published some objective-c code a while back which was to great help! Thanks for [sharing](https://blog.trailofbits.com/2016/06/28/start-using-the-secure-enclave-crypto-api/) Tidas and [SecureEnclaveCrypto](https://github.com/trailofbits/SecureEnclaveCrypto). 
 - Quinn "the Eskimo!", Apple, was to [great help](https://forums.developer.apple.com/message/84684#84684) with regards to exporting the public key in the proper DER X.509 format.
 
+## FAQ
+
+**Q: On simulator I don't see any prompt**  
+A: For your leisure we store the private key in keychain instead of the secure enclave on simulator. This makes development faster and easier. The simulator doesn't posess any secure enclave. The only diff [is a single line of code](https://github.com/agens-no/EllipticCurveKeyPair/blob/70c248e83e8c0aaf73a9c27a1bce4becfe257bba/Sources/EllipticCurveKeyPair.swift#L124-L137).
+
+
 ## Feedback
 
 We would 😍 to hear your opinion about this library. Wether you like or don't. Please file an issue if there's something you would like to see improved. Reach me on twitter as [@hfossli](https://twitter.com/hfossli) if you have any questions at all 😀.
