@@ -14,7 +14,7 @@ Sign, verify, encrypt and decrypt using the Secure Enclave.
 
 ## Nitty-gritty 
 
-Apple released an API for using the Secure Enclave (`kSecAttrTokenIDSecureEnclave`) in iOS 9. Using the Security Framework can be a little bit confusing. That’s why I created this. You may use it as example code and guidance or you may use it as a micro framework. 
+Using the Security Framework can be a little bit confusing. That’s why I created this. You may use it as example code and guidance or you may use it as a micro framework.
 
 I found it tricky to figure out how to use the `SecKeyRawVerify`, `SecKeyGeneratePair` and `SecItemCopyMatching` C APIs in Swift 3, but the implementation is quite straight forward thanks to awesome Swift 3 features.
 
@@ -87,7 +87,7 @@ A use case could be
 
 
 ## Keywords
-Security framework, Swift 3, Swift, SecKeyRawVerify, SecKeyGeneratePair, SecItemCopyMatching, secp256r1, Elliptic Curve Cryptography, ECDSA, ECDH, ASN.1, Apple, iOS, Mac OS, kSecAttrKeyTypeECSECPrimeRandom, kSecAttrKeyTypeEC
+Security framework, Swift 3, Swift, SecKeyRawVerify, SecKeyGeneratePair, SecItemCopyMatching, secp256r1, Elliptic Curve Cryptography, ECDSA, ECDH, ASN.1, Apple, iOS, Mac OS, kSecAttrKeyTypeECSECPrimeRandom, kSecAttrKeyTypeEC, kSecAttrTokenIDSecureEnclave
 
 ## Credits
 
