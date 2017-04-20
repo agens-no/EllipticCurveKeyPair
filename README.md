@@ -3,6 +3,8 @@ EllipticCurveKeyPair 🔑🔑
 
 Sign, verify, encrypt and decrypt using the Secure Enclave.
 
+
+
 ## Features
 
 - create a private public keypair
@@ -12,11 +14,15 @@ Sign, verify, encrypt and decrypt using the Secure Enclave.
 - export the public key as X.509 DER with proper ASN.1 header / structure
 - verify the signature with openssl in command line easily
 
+
+
 ## Nitty-gritty 
 
 Using the Security Framework can be a little bit confusing. That’s why I created this. You may use it as example code and guidance or you may use it as a micro framework.
 
 I found it tricky to figure out how to use the `SecKeyRawVerify`, `SecKeyGeneratePair` and `SecItemCopyMatching` C APIs in Swift 3, but the implementation is quite straight forward thanks to awesome Swift 3 features.
+
+
 
 ## Installation
 
@@ -24,9 +30,108 @@ Just drag the `Sources/EllipticCurveKeyPair.swift` file into your XCode project.
 
 To keep the source code here at a minimum you need to pass a sha256 function in to this library yourself because [CommonCrypto is missing a module map for swift](http://www.openradar.me/26276263). In the demo app you'll see how you can do that very easily.
 
-## Usage
 
-See demo app for example.
+
+
+## Usage guide and examples
+
+For more examples see demo app.
+
+### Creating a keypair manager
+
+```swift
+static let keypair: EllipticCurveKeyPair.Manager = {
+    let publicLabel = "no.agens.encrypt.public"
+    let privateLabel = "no.agens.encrypt.private"
+    let prompt = "Sign transaction"
+    let sha256: (Data) -> Data = { return ELCKPCommonCryptoAccess.sha256Digest(for: $0) }
+    let accessControl = try! EllipticCurveKeyPair.Helper.createAccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly)
+    let helper = EllipticCurveKeyPair.Helper(publicLabel: publicLabel, privateLabel: privateLabel, operationPrompt: prompt, sha256: sha256, accessControl: accessControl)
+    return EllipticCurveKeyPair.Manager(helper: helper)
+}()
+```
+See demo app for working example
+
+### Getting the public key in DER format
+
+```swift
+do {
+    let manager = ...
+    let key = manager.publicKey().data().der
+} catch {
+    // handle error
+}
+```
+See demo app for working example
+
+### Signing
+
+```swift
+do {
+    let manager = ...
+    let digest = "some text to sign".data(using: .utf8)!
+    let signature = try manager.sign(digest)
+} catch {
+    // handle error
+}
+```
+See demo app for working example
+
+### Encrypting
+
+```swift
+do {
+    let manager = ...
+    let digest = "some text to encrypt".data(using: .utf8)!
+    let encrypted = try manager.encrypt(digest)
+} catch {
+    // handle error
+}
+```
+See demo app for working example
+
+### Decrypting
+
+```swift
+do {
+    let manager = ...
+    let encrypted = ...
+    let decrypted = try manager.decrypt(encrypted)
+    let decryptedString = String.init(data: decrypted, encoding: .utf8)
+} catch {
+    // handle error
+}
+```
+See demo app for working example
+
+
+
+## Possbitilites
+
+There are lots of great possibilities with Secure Enclave. Here are some examples
+
+### Encrypting
+
+1. Encrypt a message using the public key
+1. Decrypt the message using the private key – only accessible with touch id / device pin
+
+Only available on iOS 10
+
+### Signing
+
+1. Sign some data received by server using the private key – only accessible with touch id / device pin
+1. Verify that the signature is valid using the public key
+
+A use case could be
+
+1. User is requesting a new agreement / purchase
+1. Server sends a push with a session token that should be signed
+1. On device we sign the session token using the private key - prompting the user to confirm with touch id
+1. The signed token is then sent to server
+1. Server already is in posession of the public key and verifies the signature using the public key
+1. Server is now confident that user signed this agreement with touch id
+
+
 
 ## Verifying a signature
 
@@ -60,34 +165,12 @@ Verified OK
 
 PS: This script will create 4 files in your current directory.
 
-## Examples
-
-There are lots of great possibilities with Secure Enclave. Here are some examples
-
-### Encrypting
-
-1. Encrypt a message using the public key
-1. Decrypt the message using the private key – only accessible with touch id / device pin
-
-Only available on iOS 10
-
-### Signing
-
-1. Sign some data received by server using the private key – only accessible with touch id / device pin
-1. Verify that the signature is valid using the public key
-
-A use case could be
-
-1. User is requesting a new agreement / purchase
-1. Server sends a push with a session token that should be signed
-1. On device we sign the session token using the private key - prompting the user to confirm with touch id
-1. The signed token is then sent to server
-1. Server already is in posession of the public key and verifies the signature using the public key
-1. Server is now confident that user signed this agreement with touch id
 
 
 ## Keywords
 Security framework, Swift 3, Swift, SecKeyRawVerify, SecKeyGeneratePair, SecItemCopyMatching, secp256r1, Elliptic Curve Cryptography, ECDSA, ECDH, ASN.1, Apple, iOS, Mac OS, kSecAttrKeyTypeECSECPrimeRandom, kSecAttrKeyTypeEC, kSecAttrTokenIDSecureEnclave
+
+
 
 ## Credits
 
@@ -99,6 +182,8 @@ Security framework, Swift 3, Swift, SecKeyRawVerify, SecKeyGeneratePair, SecItem
 
 He shared som [very valuable insights](https://forums.developer.apple.com/message/84684#84684) with regards to exporting the public key in the proper DER X.509 format.
 
+
+
 ## FAQ
 
 **Q: Why am I not being prompted with touch id / device pin on simulator?**  
@@ -106,6 +191,8 @@ A: The simulator doesn’t posess any secure enclave and therefore trying to acc
 
 **Q: Where can I learn more?**  
 A: Check out this video on [WWDC 2015](https://developer.apple.com/videos/play/wwdc2015/706/) about Security in general or [click here](https://developer.apple.com/videos/play/wwdc2015/706/?time=2069) to skip right to the section about the Secure Enclave.
+
+
 
 ## Feedback
 
