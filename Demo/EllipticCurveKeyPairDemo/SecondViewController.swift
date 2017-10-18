@@ -23,6 +23,14 @@
  */
 
 import UIKit
+import LocalAuthentication
+
+func delay( _ delay: Double, queue: DispatchQueue = DispatchQueue.main, completion: @escaping () -> () ) {
+    queue.asyncAfter(deadline: DispatchTime.now() + Double(Int64(delay * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC)) { () -> Void in
+        completion()
+    }
+}
+
 
 class SecondViewController: UIViewController {
     
@@ -31,12 +39,13 @@ class SecondViewController: UIViewController {
             let publicLabel = "no.agens.sign.public"
             let privateLabel = "no.agens.sign.private"
             let prompt = "Confirm payment"
-            let sha256: (Data) -> Data = { return ELCKPCommonCryptoAccess.sha256Digest(for: $0) }
-            let accessControl = try! EllipticCurveKeyPair.Helper.createAccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly)
-            let helper = EllipticCurveKeyPair.Helper(publicLabel: publicLabel, privateLabel: privateLabel, operationPrompt: prompt, sha256: sha256, accessControl: accessControl)
-            return EllipticCurveKeyPair.Manager(helper: helper)
+            let accessControl = try! EllipticCurveKeyPair.Config.createAccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: [.userPresence, .privateKeyUsage,])
+            let config = EllipticCurveKeyPair.Config(publicLabel: publicLabel, privateLabel: privateLabel, operationPrompt: prompt, accessControl: accessControl)
+            return EllipticCurveKeyPair.Manager(config: config)
         }()
     }
+    
+    var context: LAContext! = LAContext()
     
     @IBOutlet weak var publicKeyTextView: UITextView!
     @IBOutlet weak var digestTextView: UITextView!
@@ -47,24 +56,25 @@ class SecondViewController: UIViewController {
         
         do {
             let key = try Shared.keypair.publicKey().data()
-            publicKeyTextView.text = key.der
+            publicKeyTextView.text = key.PEM
         } catch {
             publicKeyTextView.text = "Error: \(error)"
         }
     }
     
     @IBAction func regeneratePublicKey(_ sender: Any) {
+        context = LAContext()
         do {
             try Shared.keypair.deleteKeyPair()
             let key = try Shared.keypair.publicKey().data()
-            publicKeyTextView.text = key.der
+            publicKeyTextView.text = key.PEM
         } catch {
             publicKeyTextView.text = "Error: \(error)"
         }
     }
     
     var cycleIndex = 0
-    let digests = ["ABC", "IS", "ABOUT", "ALL", "POTUS", "CAN", "READ"]
+    let digests = ["Lorem ipsum dolor sit amet", "mei nibh tritani ex", "exerci periculis instructior est ad"]
     
     @IBAction func createDigest(_ sender: Any) {
         cycleIndex += 1
@@ -72,16 +82,25 @@ class SecondViewController: UIViewController {
     }
     
     @IBAction func sign(_ sender: Any) {
-        do {
-            guard let digest = digestTextView.text?.data(using: .utf8) else {
+        
+        /*
+         Using the DispatchQueue.roundTrip is totally optional.
+         What's important is that you call `sign` on a different thread than main.
+         */
+        
+        DispatchQueue.roundTrip({
+            guard let digest = self.digestTextView.text?.data(using: .utf8) else {
                 throw "Missing text in unencrypted text field"
             }
-            let signature = try Shared.keypair.sign(digest)
-            signatureTextView.text = signature.base64EncodedString()
-            verifyAndLog(manager: Shared.keypair, signed: signature, digest: digest)
-        } catch {
-            publicKeyTextView.text = "Error: \(error)"
-        }
+            return digest
+        }, thenAsync: { digest in
+            return try Shared.keypair.sign(digest, context: self.context)
+        }, thenOnMain: { signature in
+            self.signatureTextView.text = signature.base64EncodedString()
+        }, catchToMain: { error in
+            self.signatureTextView.text = "Error: \(error)"
+        })
     }
+    
 }
 

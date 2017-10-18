@@ -25,21 +25,62 @@
 
 import Foundation
 import Security
+import LocalAuthentication
 
 public struct EllipticCurveKeyPair {
+        
+    public struct Config {
+        
+        // The user visible label in the device's key chain
+        let publicLabel: String
+        
+        // The label used to identify the key in the secure enclave
+        let privateLabel: String
+        
+        // The text presented to the user about why we need his/her fingerprint / device pin
+        let operationPrompt: String?
+        
+        // The access control used to manage the access to the keypair
+        let accessControl: SecAccessControl
+        
+        public init(publicLabel: String,
+                    privateLabel: String,
+                    operationPrompt: String?,
+                    accessControl: SecAccessControl) {
+            self.publicLabel = publicLabel
+            self.privateLabel = privateLabel
+            self.operationPrompt = operationPrompt
+            self.accessControl = accessControl
+        }
+
+        @available(iOSApplicationExtension 9.0, *)
+        static func createAccessControl(protection: CFString, flags: SecAccessControlCreateFlags) throws -> SecAccessControl {
+            var error: Unmanaged<CFError>?
+            let accessControl = SecAccessControlCreateWithFlags(kCFAllocatorDefault, protection, flags, &error)
+            guard accessControl != nil else {
+                throw Error.fromError(error?.takeRetainedValue(), message: "Tried creating access control object with flags \(flags) and protection \(protection)")
+            }
+            return accessControl!
+        }
+        
+    }
     
-    // A stateful manager for using the secure enclave and keychain
+    // A stateful and opiniated manager for using the secure enclave and keychain
     // If there's a problem fetching the key pair this manager will naively just recreate new keypair
+    // If the device doesn't have a Secure Enclave it will store the private key in keychain just like the public key
+    //
     // If the manager is "too smart" in that sense you may use this manager as an example
     // and create your own manager
     public final class Manager {
         
-        public init(helper: Helper) {
-            self.helper = helper
-        }
-        
+        let config: Config
         private var cache: (`public`: PublicKey, `private`: PrivateKey)? = nil
         private let helper: Helper
+        
+        init(config: Config) {
+            self.config = config
+            self.helper = Helper(config: config)
+        }
         
         func deleteKeyPair() throws {
             cache = nil
@@ -58,32 +99,44 @@ public struct EllipticCurveKeyPair {
             return try helper.verify(signature: signature, digest: originalDigest, publicKey: getKeys().public)
         }
         
-        func sign(_ digest: Data) throws -> Data {
-            return try helper.sign(digest, privateKey: getKeys().private)
+        func sign(_ digest: Data, context: LAContext? = nil) throws -> Data {
+            return try helper.sign(digest, privateKey: getKeys().private.accessibleWithContext(context))
         }
         
-        @available(iOS 10.3, *)
+        @available(iOS 10.3, *) // API available at 10.0, but bugs made it unusable on versions lower than 10.3
         func encrypt(_ digest: Data) throws -> Data {
             return try helper.encrypt(digest, publicKey: getKeys().public)
         }
         
-        @available(iOS 10.3, *)
-        func decrypt(_ digest: Data) throws -> Data {
-            return try helper.decrypt(digest, privateKey: getKeys().private)
+        @available(iOS 10.3, *) // API available at 10.0, but bugs made it unusable on versions lower than 10.3
+        func decrypt(_ encrypted: Data, context: LAContext? = nil) throws -> Data {
+            return try helper.decrypt(encrypted, privateKey: getKeys().private.accessibleWithContext(context))
         }
         
         func getKeys() throws -> (`public`: PublicKey, `private`: PrivateKey) {
+            
             if let keys = cache {
                 return keys
             }
+            
             if let keyPair = try? helper.get() {
                 cache = keyPair
                 return keyPair
             }
-            let keyPair = try helper.generate()
-            cache = keyPair
-            return keyPair
+            
+            do {
+                let keyPair = try helper.generateAndStoreOnSecureEnclave()
+                cache = keyPair
+                return keyPair
+            } catch let Error.underlying(message: _, error: underlying) where underlying.code == errSecUnimplemented || underlying.code == errSecAuthFailed {
+                let keyPair = try helper.generateAndStoreInKeyChain()
+                cache = keyPair
+                return keyPair
+            } catch {
+                throw error
+            }
         }
+        
     }
     
     // A stateless helper for querying the secure enclave and keychain
@@ -91,93 +144,112 @@ public struct EllipticCurveKeyPair {
     public struct Helper {
         
         // The user visible label in the device's key chain
-        let publicLabel: String
-        
-        // The label used to identify the key in the secure enclave
-        let privateLabel: String
-        
-        // The text presented to the user about why we need his/her fingerprint / device pin
-        let operationPrompt: String
-        
-        // A function performing sha256 and returning the result
-        let sha256: (Data) -> Data
-        
-        // The access control used to manage the access to the keypair
-        let accessControl: SecAccessControl
+        let config: Config
         
         func get() throws -> (`public`: PublicKey, `private`: PrivateKey) {
             do {
-                let publicKey = try Query.getPublicKey(labeled: publicLabel)
-                let privateKey = try Query.getPrivateKey(labeled: privateLabel)
+                let publicKey = try Query.getPublicKey(labeled: config.publicLabel)
+                let privateKey = try Query.getPrivateKey(labeled: config.privateLabel)
                 return (public: publicKey, private: privateKey)
             } catch let error {
                 throw error
             }
         }
         
-        func generate() throws -> (`public`: PublicKey, `private`: PrivateKey) {
-            
-            let privateKeyParams: [String: Any] = [
-                kSecAttrLabel as String: privateLabel,
+        func generateAndStoreOnSecureEnclave() throws -> (`public`: PublicKey, `private`: PrivateKey) {
+            var privateKeyParams: [String: Any] = [
+                kSecAttrLabel as String: config.privateLabel,
                 kSecAttrIsPermanent as String: true,
-                kSecAttrAccessControl as String: self.accessControl,
-                kSecUseOperationPrompt as String: self.operationPrompt,
+                kSecAttrAccessControl as String: config.accessControl,
+                kSecUseAuthenticationUI as String: kSecUseAuthenticationUIAllow,
                 ]
             
-            #if (arch(i386) || arch(x86_64)) && os(iOS) // simulator
-                let params: [String: Any] = [
-                    kSecAttrKeyType as String: Constants.attrKeyTypeEllipticCurve,
-                    kSecPrivateKeyAttrs as String: privateKeyParams,
-                    kSecAttrKeySizeInBits as String: 256,
-                    ]
-            #else // device
-                let params: [String: Any] = [
-                    kSecAttrKeyType as String: Constants.attrKeyTypeEllipticCurve,
-                    kSecAttrTokenID as String: kSecAttrTokenIDSecureEnclave,
-                    kSecPrivateKeyAttrs as String: privateKeyParams,
-                    kSecAttrKeySizeInBits as String: 256,
-                    ]
-            #endif
+            if let operationPrompt = config.operationPrompt {
+                privateKeyParams[kSecUseOperationPrompt as String] = operationPrompt
+            }
+            
+            let params: [String: Any] = [
+                kSecAttrKeyType as String: Constants.attrKeyTypeEllipticCurve,
+                kSecAttrTokenID as String: kSecAttrTokenIDSecureEnclave,
+                kSecPrivateKeyAttrs as String: privateKeyParams,
+                kSecAttrKeySizeInBits as String: 256,
+                ]
             
             var publicOptional, privateOptional: SecKey?
             let status = SecKeyGeneratePair(params as CFDictionary, &publicOptional, &privateOptional)
             guard status == errSecSuccess else {
-                throw Error.underlying(message: "Could not generate keypair", osStatus: status)
+                throw Error.osStatus(message: "Could not generate keypair.", osStatus: status)
             }
             guard let publicSec = publicOptional, let privateSec = privateOptional else {
-                throw Error.inconcistency(message: "Created private public key pair successfully, but weren't able to retreive it")
+                throw Error.inconcistency(message: "Created private public key pair successfully, but weren't able to retreive it.")
             }
             let publicKey = PublicKey(publicSec)
             let privateKey = PrivateKey(privateSec)
-            try Query.forceSavePublicKey(publicKey, label: publicLabel)
+            try Query.forceSavePublicKey(publicKey, label: config.publicLabel)
+            return (public: publicKey, private: privateKey)
+        }
+        
+        func generateAndStoreInKeyChain() throws -> (`public`: PublicKey, `private`: PrivateKey) {
+            let privateKeyParams: [String: Any] = [
+                kSecAttrLabel as String: config.privateLabel,
+                kSecAttrIsPermanent as String: true,
+                kSecAttrAccessControl as String: try Config.createAccessControl(protection: kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly, flags: [.userPresence]),
+                ]
+            let params: [String: Any] = [
+                kSecAttrKeyType as String: Constants.attrKeyTypeEllipticCurve,
+                kSecPrivateKeyAttrs as String: privateKeyParams,
+                kSecAttrKeySizeInBits as String: 256,
+                ]
+            var publicOptional, privateOptional: SecKey?
+            let status = SecKeyGeneratePair(params as CFDictionary, &publicOptional, &privateOptional)
+            guard status == errSecSuccess else {
+                throw Error.osStatus(message: "Could not generate keypair.", osStatus: status)
+            }
+            guard let publicSec = publicOptional, let privateSec = privateOptional else {
+                throw Error.inconcistency(message: "Created private public key pair successfully, but weren't able to retreive it.")
+            }
+            let publicKey = PublicKey(publicSec)
+            let privateKey = PrivateKey(privateSec)
+            try Query.forceSavePublicKey(publicKey, label: config.publicLabel)
             return (public: publicKey, private: privateKey)
         }
         
         func delete() throws {
-            try Query.deletePublicKey(labeled: publicLabel)
-            try Query.deletePrivateKey(labeled: privateLabel)
+            try Query.deletePublicKey(labeled: config.publicLabel)
+            try Query.deletePrivateKey(labeled: config.privateLabel)
         }
         
         func sign(_ digest: Data, privateKey: PrivateKey) throws -> Data {
-            
-            let digestToSign = sha256(digest)
-            var digestToSignBytes = [UInt8](repeating: 0, count: digestToSign.count)
-            digestToSign.copyBytes(to: &digestToSignBytes, count: digestToSign.count)
-            
-            var signatureBytes = [UInt8](repeating: 0, count: 128)
-            var signatureLength = 128
-            
-            let signErr = SecKeyRawSign(privateKey.underlying, .PKCS1, &digestToSignBytes, digestToSignBytes.count, &signatureBytes, &signatureLength)
-            guard signErr == errSecSuccess else {
-                throw Error.underlying(message: "Could not create signature", osStatus: signErr)
+            Helper.logToConsoleIfExecutingOnMainThread()
+            if #available(iOS 10.0, *) {
+                let digestToSign = digest.sha256()
+                var error : Unmanaged<CFError>?
+                let result = SecKeyCreateSignature(privateKey.underlying, .ecdsaSignatureDigestX962SHA256, digestToSign as CFData, &error)
+                guard let signature = result else {
+                    throw Error.fromError(error?.takeRetainedValue(), message: "Could not create signature.")
+                }
+                return signature as Data
+            } else {
+                let digestToSign = digest.sha256()
+                
+                var digestToSignBytes = [UInt8](repeating: 0, count: digestToSign.count)
+                digestToSign.copyBytes(to: &digestToSignBytes, count: digestToSign.count)
+                
+                var signatureBytes = [UInt8](repeating: 0, count: 128)
+                var signatureLength = 128
+                
+                let signErr = SecKeyRawSign(privateKey.underlying, .PKCS1, &digestToSignBytes, digestToSignBytes.count, &signatureBytes, &signatureLength)
+                guard signErr == errSecSuccess else {
+                    throw Error.osStatus(message: "Could not create signature.", osStatus: signErr)
+                }
+                
+                let signature = Data(bytes: &signatureBytes, count: signatureLength)
+                return signature
             }
-            
-            let signature = Data(bytes: &signatureBytes, count: signatureLength)
-            return signature
         }
         
         func verify(signature: Data, digest: Data, publicKey: PublicKey) throws -> Bool {
-            let sha = sha256(digest)
+            let sha = digest.sha256()
             var shaBytes = [UInt8](repeating: 0, count: sha.count)
             sha.copyBytes(to: &shaBytes, count: sha.count)
             
@@ -186,7 +258,7 @@ public struct EllipticCurveKeyPair {
             
             let status = SecKeyRawVerify(publicKey.underlying, .PKCS1, &shaBytes, shaBytes.count, &signatureBytes, signatureBytes.count)
             guard status == errSecSuccess else {
-                throw Error.underlying(message: "Could not verify signature", osStatus: status)
+                throw Error.osStatus(message: "Could not verify signature.", osStatus: status)
             }
             return true
         }
@@ -196,30 +268,33 @@ public struct EllipticCurveKeyPair {
             var error : Unmanaged<CFError>?
             let result = SecKeyCreateEncryptedData(publicKey.underlying, SecKeyAlgorithm.eciesEncryptionStandardX963SHA256AESGCM, digest as CFData, &error)
             guard let data = result else {
-                throw Error.fromError(error, message: "Could not encrypt")
+                throw Error.fromError(error?.takeRetainedValue(), message: "Could not encrypt.")
             }
             return data as Data
         }
         
         @available(iOS 10.3, *)
         func decrypt(_ digest: Data, privateKey: PrivateKey) throws -> Data {
+            Helper.logToConsoleIfExecutingOnMainThread()
             var error : Unmanaged<CFError>?
             let result = SecKeyCreateDecryptedData(privateKey.underlying, SecKeyAlgorithm.eciesEncryptionStandardX963SHA256AESGCM, digest as CFData, &error)
             guard let data = result else {
-                throw Error.fromError(error, message: "Could not decrypt")
+                throw Error.fromError(error?.takeRetainedValue(), message: "Could not decrypt.")
             }
             return data as Data
         }
         
-        @available(iOSApplicationExtension 9.0, *)
-        static func createAccessControl(protection: CFString = kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly, flags: SecAccessControlCreateFlags = [.userPresence, .privateKeyUsage]) throws -> SecAccessControl {
-            var error: Unmanaged<CFError>?
-            let accessControl = SecAccessControlCreateWithFlags(kCFAllocatorDefault, protection, flags, &error)
-            guard accessControl != nil else {
-                throw Error.fromError(error, message: "Tried creating access control object with flags \(flags) and protection \(protection)")
+        static func logToConsoleIfExecutingOnMainThread() {
+            if Thread.isMainThread {
+                let _ = LogOnce.shouldNotBeMainThread
             }
-            return accessControl!
         }
+    }
+    
+    private struct LogOnce {
+        static var shouldNotBeMainThread: Void = {
+            print("[WARNING] \(EllipticCurveKeyPair.self): Decryption and signing should be done off main thread because LocalAuthentication may need the thread to show UI. This message is logged only once.")
+        }()
     }
     
     private struct Query {
@@ -228,7 +303,7 @@ public struct EllipticCurveKeyPair {
             var raw: CFTypeRef?
             let status = SecItemCopyMatching(query as CFDictionary, &raw)
             guard status == errSecSuccess, let result = raw else {
-                throw Error.underlying(message: "Could not get key for query: \(query)", osStatus: status)
+                throw Error.osStatus(message: "Could not get key for query: \(query)", osStatus: status)
             }
             return result as! SecKey
         }
@@ -265,7 +340,7 @@ public struct EllipticCurveKeyPair {
             let query = publicKeyQuery(labeled: labeled) as CFDictionary
             let status = SecItemDelete(query as CFDictionary)
             guard status == errSecSuccess || status == errSecItemNotFound else {
-                throw Error.underlying(message: "Could not delete private key", osStatus: status)
+                throw Error.osStatus(message: "Could not delete private key.", osStatus: status)
             }
         }
         
@@ -273,7 +348,7 @@ public struct EllipticCurveKeyPair {
             let query = privateKeyQuery(labeled: labeled) as CFDictionary
             let status = SecItemDelete(query as CFDictionary)
             guard status == errSecSuccess || status == errSecItemNotFound else {
-                throw Error.underlying(message: "Could not delete private key", osStatus: status)
+                throw Error.osStatus(message: "Could not delete private key.", osStatus: status)
             }
         }
         
@@ -290,13 +365,13 @@ public struct EllipticCurveKeyPair {
                 status = SecItemAdd(query as CFDictionary, &raw)
             }
             guard status == errSecSuccess else {
-                throw Error.underlying(message: "Could not save public key", osStatus: status)
+                throw Error.osStatus(message: "Could not save public key", osStatus: status)
             }
         }
     }
     
     public struct Constants {
-        static var x509Header: Data = Data(bytes: [UInt8]([48, 89, 48, 19, 6, 7, 42, 134, 72, 206, 61, 2, 1, 6, 8, 42, 134, 72, 206, 61, 3, 1, 7, 3, 66, 0]))
+        static var x9_62Header: Data = Data(bytes: [UInt8]([0x30, 0x59, 0x30, 0x13, 0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01, 0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07, 0x03, 0x42, 0x00]))
         static let noCompression: UInt8 = 4
         static var attrKeyTypeEllipticCurve: String = {
             if #available(iOS 10.0, *) {
@@ -309,6 +384,25 @@ public struct EllipticCurveKeyPair {
     
     public final class PublicKeyData {
         
+        /*
+        
+        OID = 06 09 2A 86 48 CE 3D 03 01 01 07
+        Comment = ANSI X9.62 named elliptic curve
+        Description = prime256v1 (1 2 840 10045 3 1 1 7)
+        Link = http://oid-info.com/get/1.2.840.10045.3.1.1.7
+        
+        OID = 06 08 2A 86 48 CE 3D 03 01 07 <---- currently in use
+        Comment = ANSI X9.62 named elliptic curve
+        Description = ansiX9p256r1 (1 2 840 10045 3 1 7)
+        Link = http://oid-info.com/get/1.2.840.10045.3.1.7
+        
+        OID = 06 08 2A 86 48 CE 3D 04 03 02
+        Comment = ANSI X9.62 ECDSA algorithm with SHA256
+        Description = ecdsaWithSHA256 (1 2 840 10045 4 3 2)
+        Link = http://oid-info.com/get/1.2.840.10045.4.3.2
+        
+         */
+        
         // As received from Security framework
         let raw: Data
         
@@ -320,16 +414,16 @@ public struct EllipticCurveKeyPair {
         // See the following DevForums post for more details on this.
         //
         // <https://forums.developer.apple.com/message/84684#84684>.
-        lazy var rawWithHeaders: Data = {
-            var result = Constants.x509Header
+        lazy var DER: Data = {
+            var result = Constants.x9_62Header
             result.append(self.raw)
             return result
         }()
         
-        lazy var der: String = {
+        lazy var PEM: String = {
             var lines = String()
             lines.append("-----BEGIN PUBLIC KEY-----\n")
-            lines.append(self.rawWithHeaders.base64EncodedString())
+            lines.append(self.DER.base64EncodedString(options: .lineLength64Characters))
             lines.append("\n-----END PUBLIC KEY-----")
             return lines
         }()
@@ -339,14 +433,48 @@ public struct EllipticCurveKeyPair {
         }
     }
     
-    public final class PublicKey {
+    public class Key {
         
         let underlying: SecKey
-        private var cachedData: PublicKeyData? = nil
         
         fileprivate init(_ underlying: SecKey) {
             self.underlying = underlying
         }
+        
+        private var cachedAttributes: [String:Any]? = nil
+        
+        func attributes() throws -> [String:Any] {
+            if let attributes = cachedAttributes {
+                return attributes
+            } else {
+                let attributes = try queryAttributes()
+                cachedAttributes = attributes
+                return attributes
+            }
+        }
+        
+        private func queryAttributes() throws -> [String:Any] {
+            var matchResult: AnyObject? = nil
+            let query: [String:Any] = [
+                kSecClass as String: kSecClassKey,
+                kSecValueRef as String: underlying,
+                kSecReturnAttributes as String: true
+            ]
+            
+            let status = SecItemCopyMatching(query as CFDictionary, &matchResult)
+            guard status == errSecSuccess else {
+                throw Error.osStatus(message: "Could not read attributes for key", osStatus: status)
+            }
+            guard let attributes = matchResult as? [String:Any] else {
+                throw Error.inconcistency(message: "Tried reading key attributes something went wrong. Expected dictionary, but received \(String(describing: matchResult)).")
+            }
+            return attributes
+        }
+    }
+    
+    public final class PublicKey: Key {
+        
+        private var cachedData: PublicKeyData? = nil
         
         func data() throws -> PublicKeyData {
             if let data = cachedData {
@@ -365,42 +493,124 @@ public struct EllipticCurveKeyPair {
                 kSecValueRef as String: underlying,
                 kSecReturnData as String: true
             ]
+            
             let status = SecItemCopyMatching(query as CFDictionary, &matchResult)
             guard status == errSecSuccess else {
-                throw Error.underlying(message: "Could not generate keypair", osStatus: status)
+                throw Error.osStatus(message: "Could not generate keypair", osStatus: status)
             }
             guard let keyRaw = matchResult as? Data else {
-                throw Error.inconcistency(message: "Tried reading public key bytes, but something went wrong. Expected data, but received \(String(describing: matchResult))")
+                throw Error.inconcistency(message: "Tried reading public key bytes, but something went wrong. Expected data, but received \(String(describing: matchResult)).")
             }
-            var firstByte: [UInt8] = [UInt8](repeating: 0, count: 1)
-            keyRaw.copyBytes(to: &firstByte, count: 1)
-            guard firstByte.first == Constants.noCompression else {
-                throw Error.inconcistency(message: "Tried reading public key bytes, but its headers says it is compressed")
+            guard keyRaw.first == Constants.noCompression else {
+                throw Error.inconcistency(message: "Tried reading public key bytes, but its headers says it is compressed.")
             }
             return PublicKeyData(keyRaw)
         }
     }
     
-    public final class PrivateKey {
-        let underlying: SecKey
-        fileprivate init(_ underlying: SecKey) {
-            self.underlying = underlying
+    public final class PrivateKey: Key {
+        
+        func isStoredOnSecureEnclave() throws -> Bool {
+            let attributes = try self.attributes()
+            let attribute = attributes[kSecAttrTokenID as String] as? String
+            return attribute == (kSecAttrTokenIDSecureEnclave as String)
         }
+        
+        func accessControl() throws -> SecAccessControl {
+            let attributes = try self.attributes()
+            guard let attribute = attributes[kSecAttrAccessControl as String] else {
+                throw Error.inconcistency(message: "We've got a private key, but we are missing its access control.")
+            }
+            return attribute as! SecAccessControl
+        }
+        
+        func label() throws -> String {
+            let attributes = try self.attributes()
+            guard let attribute = attributes[kSecAttrLabel as String] as? String else {
+                throw Error.inconcistency(message: "We've got a private key, but we are missing its label.")
+            }
+            return attribute
+        }
+        
+        func accessibleWithContext(_ context: LAContext?) throws -> PrivateKey {
+            var query = Query.privateKeyQuery(labeled: try label())
+            query[kSecUseAuthenticationContext as String] = context
+            let underlying = try Query.getKey(query)
+            return PrivateKey(underlying)
+        }
+        
     }
     
-    public enum Error: Swift.Error {
-        // Look up OSStatus error codes on https://www.osstatus.com/
-        case underlying(message: String, osStatus: OSStatus)
-        case inconcistency(message: String)
+    public enum Error: LocalizedError {
         
-        static func fromError(_ error: Any?, message: String? = nil) -> Error {
-            let errorString: String
-            if let error = error as? Swift.Error {
-                errorString = error.localizedDescription
-            } else {
-                errorString = "\(error ?? "null")"
+        case underlying(message: String, error: NSError)
+        case inconcistency(message: String)
+        case authentication(error: LAError)
+        
+        public var errorDescription: String? {
+            switch self {
+            case let .underlying(message: message, error: error):
+                return "\(message). \(error.localizedDescription)"
+            case let .authentication(error: error):
+                return "Authentication failed. \(error.localizedDescription)"
+            case let .inconcistency(message: message):
+                return "Inconcistency in setup, configuration or keychain. \(message)"
             }
-            return .inconcistency(message: "\(message ?? "")\(message != nil ? ". " : "")\(errorString)")
+        }
+        
+        internal static func osStatus(message: String, osStatus: OSStatus) -> Error {
+            let error = NSError(domain: NSOSStatusErrorDomain, code: Int(osStatus), userInfo: [
+                NSLocalizedRecoverySuggestionErrorKey: "See https://www.osstatus.com/search/results?platform=all&framework=all&search=\(osStatus)"
+                ])
+            return .underlying(message: message, error: error)
+        }
+        
+        internal static func fromError(_ error: CFError?, message: String) -> Error {
+            let any = error as Any
+            if let authenticationError = any as? LAError {
+                return .authentication(error: authenticationError)
+            }
+            if let error = error,
+                let domain = CFErrorGetDomain(error) as String? {
+                let code = Int(CFErrorGetCode(error))
+                let underlying = NSError(domain: domain, code: code, userInfo: [
+                    NSLocalizedRecoverySuggestionErrorKey: "See https://www.osstatus.com/search/results?platform=all&framework=all&search=\(osStatus)"
+                    ])
+                return .underlying(message: message, error: underlying)
+            }
+            return .inconcistency(message: "\(message) Unknown error occured.")
+        }
+        
+    }
+}
+
+extension DispatchQueue {
+    
+    static func roundTrip<T, Y>(_ block: () throws -> T,
+                                thenAsync: @escaping (T) throws -> Y,
+                                thenOnMain: @escaping (Y) throws -> Void,
+                                catchToMain: @escaping (Error) -> Void) {
+        do {
+            let resultFromMain = try block()
+            DispatchQueue.global(qos: .userInitiated).async {
+                do {
+                    let resultFromBackground = try thenAsync(resultFromMain)
+                    DispatchQueue.main.async {
+                        do {
+                            try thenOnMain(resultFromBackground)
+                        } catch {
+                            catchToMain(error)
+                        }
+                    }
+                } catch {
+                    DispatchQueue.main.async {
+                        catchToMain(error)
+                    }
+                }
+            }
+        } catch {
+            catchToMain(error)
         }
     }
 }
+

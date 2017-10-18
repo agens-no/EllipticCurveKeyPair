@@ -16,7 +16,7 @@ Sign, verify, encrypt and decrypt using the Secure Enclave.
 
 
 
-## Nitty-gritty 
+## Nitty-gritty
 
 Using the Security Framework can be a little bit confusing. That’s why I created this. You may use it as example code and guidance or you may use it as a micro framework.
 
@@ -26,9 +26,7 @@ I found it tricky to figure out how to use the `SecKeyRawVerify`, `SecKeyGenerat
 
 ## Installation
 
-Just drag the `Sources/EllipticCurveKeyPair.swift` file into your XCode project. 
-
-To keep the source code here at a minimum you need to pass a sha256 function in to this library yourself because [CommonCrypto is missing a module map for swift](http://www.openradar.me/26276263). In the demo app you'll see how you can do that very easily.
+Just drag the [Sources/EllipticCurveKeyPair.swift](Sources/EllipticCurveKeyPair.swift) and [Sources/SHA256.swift](Sources/SHA256.swift) file into your Xcode project.
 
 
 
@@ -172,7 +170,7 @@ Security framework, Swift 3, Swift, SecKeyRawVerify, SecKeyGeneratePair, SecItem
 
 
 
-## Credits
+## Acknowledgements and credits
 
 ### TrailOfBits
 
@@ -182,7 +180,9 @@ Security framework, Swift 3, Swift, SecKeyRawVerify, SecKeyGeneratePair, SecItem
 
 He shared som [very valuable insights](https://forums.developer.apple.com/message/84684#84684) with regards to exporting the public key in the proper DER X.509 format.
 
+### SHA256
 
+The `SHA256` class (originally `SHA2.swift`) is found in the invaluable [CryptoSwift](https://github.com/krzyzanowskim/CryptoSwift) library by [Marcin Krzyżanowski](http://www.krzyzanowskim.com/). The class has been heavily altered in order to strip it down to its bare minimum for what we needed in this project.
 
 ## FAQ
 

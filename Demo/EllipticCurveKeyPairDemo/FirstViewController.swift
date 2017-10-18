@@ -23,6 +23,7 @@
  */
 
 import UIKit
+import LocalAuthentication
 
 class FirstViewController: UIViewController {
     
@@ -31,81 +32,135 @@ class FirstViewController: UIViewController {
             let publicLabel = "no.agens.encrypt.public"
             let privateLabel = "no.agens.encrypt.private"
             let prompt = "Confirm payment"
-            let sha256: (Data) -> Data = { return ELCKPCommonCryptoAccess.sha256Digest(for: $0) }
-            let accessControl = try! EllipticCurveKeyPair.Helper.createAccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly)
-            let helper = EllipticCurveKeyPair.Helper(publicLabel: publicLabel, privateLabel: privateLabel, operationPrompt: prompt, sha256: sha256, accessControl: accessControl)
-            return EllipticCurveKeyPair.Manager(helper: helper)
+            let accessControl = try! EllipticCurveKeyPair.Config.createAccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: [.touchIDCurrentSet, .devicePasscode, .privateKeyUsage])
+            let config = EllipticCurveKeyPair.Config(publicLabel: publicLabel, privateLabel: privateLabel, operationPrompt: prompt, accessControl: accessControl)
+            return EllipticCurveKeyPair.Manager(config: config)
         }()
     }
+    
+    var context: LAContext! = LAContext()
+    var decrypted = true
 
     @IBOutlet weak var publicKeyTextView: UITextView!
-    @IBOutlet weak var unencryptedTextView: UITextView!
-    @IBOutlet weak var encryptedTextView: UITextView!
+    @IBOutlet weak var encryptDecryptTitleLabel: UILabel!
+    @IBOutlet weak var encryptDecryptTextView: UITextView!
+    @IBOutlet weak var encryptDecryptButton: UIButton!
+    @IBOutlet weak var resetButton: UIButton!
+    
+    enum State {
+        case decrypted(String)
+        case encrypted(String)
+        case error(Error)
+    }
+    
+    var state: State? {
+        didSet {
+            if let state = state {
+                switch state {
+                case let .decrypted(message):
+                    encryptDecryptTextView.text = message
+                    encryptDecryptButton.setTitle("Encrypt", for: .normal)
+                    encryptDecryptTitleLabel.text = "Unencrypted (plain text)"
+                    encryptDecryptButton.isHidden = false
+                    resetButton.isHidden = true
+                case let .encrypted(text):
+                    encryptDecryptTextView.text = text
+                    encryptDecryptButton.setTitle("Decrypt", for: .normal)
+                    encryptDecryptTitleLabel.text = "Encrypted"
+                    encryptDecryptButton.isHidden = false
+                    resetButton.isHidden = true
+                case let .error(error):
+                    encryptDecryptTextView.text = error.localizedDescription
+                    encryptDecryptTitleLabel.text = "Error"
+                    encryptDecryptButton.isHidden = true
+                    resetButton.isHidden = false
+                }
+            }
+        }
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
+            
+        state = .decrypted("Lorem ipsum dolor sit er elit lamet")
         
         do {
             let key = try Shared.keypair.publicKey().data()
-            publicKeyTextView.text = key.der
+            publicKeyTextView.text = key.PEM
         } catch {
             publicKeyTextView.text = "Error: \(error)"
         }
     }
     
     @IBAction func regeneratePublicKey(_ sender: Any) {
+        context = LAContext()
         do {
             try Shared.keypair.deleteKeyPair()
             let key = try Shared.keypair.publicKey().data()
-            publicKeyTextView.text = key.der
-            encryptedTextView.text = nil
+            publicKeyTextView.text = key.PEM
         } catch {
             publicKeyTextView.text = "Error: \(error)"
         }
     }
-
-    @IBAction func encrypt(_ sender: Any) {
-        do {
-            guard let input = unencryptedTextView.text?.data(using: .utf8) else {
-                throw "Missing/bad text in unencrypted text field"
-            }
-            
-            guard #available(iOS 10.3, *) else {
-                throw "Can not encrypt on this device (must be iOS 10.3)"
-            }
-            
-            let result = try Shared.keypair.encrypt(input)
-            encryptedTextView.text = result.base64EncodedString()
-        } catch {
-            encryptedTextView.text = "Error: \(error)"
+    
+    @IBAction func encryptOrDecrypt(_ sender: Any) {
+        if case .decrypted = state! {
+            encrypt()
+        } else {
+            decrypt()
         }
     }
     
-    @IBAction func decrypt(_ sender: Any) {
-        unencryptedTextView.text = "..."
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            self.decrypt()
+    @IBAction func reset(_ sender: Any) {
+        state = .decrypted("Lorem ipsum dolor sit er elit lamet")
+    }
+    
+    func encrypt() {
+        do {
+            guard let input = encryptDecryptTextView.text?.data(using: .utf8) else {
+                throw "Missing/bad text in unencrypted text field"
+            }
+            guard #available(iOS 10.3, *) else {
+                throw "Can not encrypt on this device (must be iOS 10.3)"
+            }
+            let result = try Shared.keypair.encrypt(input)
+            state = .encrypted(result.base64EncodedString())
+        } catch {
+            state = .error(error)
         }
     }
     
     func decrypt() {
-        do {
-            guard let input = Data(base64Encoded: encryptedTextView.text ?? "") else {
+        
+        /*
+         Using the DispatchQueue.roundTrip is totally optional.
+         What's important is that you call `decrypt` on a different thread than main.
+         */
+        
+        DispatchQueue.roundTrip({ () -> Data in
+            guard let encrypted = Data(base64Encoded: self.encryptDecryptTextView.text ?? "") else {
                 throw "Missing text in unencrypted text field"
             }
-            
+            return encrypted
+        }, thenAsync: { (encrypted) -> String in
             guard #available(iOS 10.3, *) else {
                 throw "Can not encrypt on this device (must be iOS 10.3)"
             }
-            
-            let result = try Shared.keypair.decrypt(input)
-            
-            let string = String.init(data: result, encoding: .utf8)
-            
-            unencryptedTextView.text = string
-        } catch {
-            unencryptedTextView.text = "Error: \(error)"
-        }
+            let result = try Shared.keypair.decrypt(encrypted, context: self.context)
+            guard let decrypted = String(data: result, encoding: .utf8) else {
+                throw "Could not convert decrypted data to string"
+            }
+            return decrypted
+        }, thenOnMain: { (decrypted) in
+            self.state = .decrypted(decrypted)
+        }, catchToMain: { (error) in
+            if case let EllipticCurveKeyPair.Error.authentication(error: authenticationError) = error,
+                authenticationError.code == .userCancel {
+                // user cancelled
+            } else {
+                self.state = .error(error)
+            }
+        })
     }
 }
 

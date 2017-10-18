@@ -13,10 +13,10 @@
 		A32FB6B51E54596900C5EA21 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A32FB6B31E54596900C5EA21 /* Main.storyboard */; };
 		A32FB6B71E54596900C5EA21 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A32FB6B61E54596900C5EA21 /* Assets.xcassets */; };
 		A32FB6BA1E54596900C5EA21 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A32FB6B81E54596900C5EA21 /* LaunchScreen.storyboard */; };
-		A32FB6C51E54596900C5EA21 /* EllipticCurveKeyPairDemoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A32FB6C41E54596900C5EA21 /* EllipticCurveKeyPairDemoTests.swift */; };
-		A32FB6D31E54598700C5EA21 /* ELCKPCommonCryptoAccess.m in Sources */ = {isa = PBXBuildFile; fileRef = A32FB6D11E54598700C5EA21 /* ELCKPCommonCryptoAccess.m */; };
 		A32FB6D71E54599B00C5EA21 /* EllipticCurveKeyPair.swift in Sources */ = {isa = PBXBuildFile; fileRef = A32FB6D61E54599B00C5EA21 /* EllipticCurveKeyPair.swift */; };
 		A32FB6D91E54661200C5EA21 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = A32FB6D81E54661200C5EA21 /* Utils.swift */; };
+		A3657CE41F94B21B00FC9A92 /* SHA256.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3657CE31F94B21B00FC9A92 /* SHA256.swift */; };
+		A3657CE81F94BC8500FC9A92 /* SHA256Test.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3657CE71F94BC8500FC9A92 /* SHA256Test.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -39,13 +39,12 @@
 		A32FB6B91E54596900C5EA21 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		A32FB6BB1E54596900C5EA21 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A32FB6C01E54596900C5EA21 /* EllipticCurveKeyPairDemoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EllipticCurveKeyPairDemoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		A32FB6C41E54596900C5EA21 /* EllipticCurveKeyPairDemoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EllipticCurveKeyPairDemoTests.swift; sourceTree = "<group>"; };
 		A32FB6C61E54596900C5EA21 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A32FB6CF1E54598600C5EA21 /* EllipticCurveKeyPairDemo-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "EllipticCurveKeyPairDemo-Bridging-Header.h"; sourceTree = "<group>"; };
-		A32FB6D01E54598700C5EA21 /* ELCKPCommonCryptoAccess.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ELCKPCommonCryptoAccess.h; sourceTree = "<group>"; };
-		A32FB6D11E54598700C5EA21 /* ELCKPCommonCryptoAccess.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ELCKPCommonCryptoAccess.m; sourceTree = "<group>"; };
 		A32FB6D61E54599B00C5EA21 /* EllipticCurveKeyPair.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EllipticCurveKeyPair.swift; sourceTree = "<group>"; };
 		A32FB6D81E54661200C5EA21 /* Utils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
+		A3657CE31F94B21B00FC9A92 /* SHA256.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SHA256.swift; sourceTree = "<group>"; };
+		A3657CE71F94BC8500FC9A92 /* SHA256Test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SHA256Test.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,8 +91,6 @@
 				A32FB6D81E54661200C5EA21 /* Utils.swift */,
 				A32FB6AF1E54596900C5EA21 /* FirstViewController.swift */,
 				A32FB6B11E54596900C5EA21 /* SecondViewController.swift */,
-				A32FB6D01E54598700C5EA21 /* ELCKPCommonCryptoAccess.h */,
-				A32FB6D11E54598700C5EA21 /* ELCKPCommonCryptoAccess.m */,
 				A32FB6B31E54596900C5EA21 /* Main.storyboard */,
 				A32FB6B61E54596900C5EA21 /* Assets.xcassets */,
 				A32FB6B81E54596900C5EA21 /* LaunchScreen.storyboard */,
@@ -106,7 +103,7 @@
 		A32FB6C31E54596900C5EA21 /* EllipticCurveKeyPairDemoTests */ = {
 			isa = PBXGroup;
 			children = (
-				A32FB6C41E54596900C5EA21 /* EllipticCurveKeyPairDemoTests.swift */,
+				A3657CE71F94BC8500FC9A92 /* SHA256Test.swift */,
 				A32FB6C61E54596900C5EA21 /* Info.plist */,
 			);
 			path = EllipticCurveKeyPairDemoTests;
@@ -116,6 +113,7 @@
 			isa = PBXGroup;
 			children = (
 				A32FB6D61E54599B00C5EA21 /* EllipticCurveKeyPair.swift */,
+				A3657CE31F94B21B00FC9A92 /* SHA256.swift */,
 			);
 			name = Sources;
 			path = ../Sources;
@@ -228,10 +226,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				A32FB6B21E54596900C5EA21 /* SecondViewController.swift in Sources */,
+				A3657CE41F94B21B00FC9A92 /* SHA256.swift in Sources */,
 				A32FB6D71E54599B00C5EA21 /* EllipticCurveKeyPair.swift in Sources */,
 				A32FB6AE1E54596900C5EA21 /* AppDelegate.swift in Sources */,
 				A32FB6B01E54596900C5EA21 /* FirstViewController.swift in Sources */,
-				A32FB6D31E54598700C5EA21 /* ELCKPCommonCryptoAccess.m in Sources */,
 				A32FB6D91E54661200C5EA21 /* Utils.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -240,7 +238,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A32FB6C51E54596900C5EA21 /* EllipticCurveKeyPairDemoTests.swift in Sources */,
+				A3657CE81F94BC8500FC9A92 /* SHA256Test.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -313,6 +311,8 @@
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
 				MTL_ENABLE_DEBUG_INFO = YES;
@@ -357,6 +357,8 @@
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
