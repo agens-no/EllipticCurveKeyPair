@@ -53,7 +53,18 @@ See demo app for working example
 
 ```swift
 do {
-    let key = keypairManager.publicKey().data().der
+    let key = keypairManager.publicKey().data().DER // Data
+} catch {
+    // handle error
+}
+```
+See demo app for working example
+
+### Getting the public key in PEM format
+
+```swift
+do {
+    let key = keypairManager.publicKey().data().PEM // String
 } catch {
     // handle error
 }
