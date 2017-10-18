@@ -38,14 +38,13 @@ For more examples see demo app.
 ### Creating a keypair manager
 
 ```swift
-static let keypair: EllipticCurveKeyPair.Manager = {
+static let keypairManager: EllipticCurveKeyPair.Manager = {
     let publicLabel = "no.agens.encrypt.public"
     let privateLabel = "no.agens.encrypt.private"
-    let prompt = "Sign transaction"
-    let sha256: (Data) -> Data = { return ELCKPCommonCryptoAccess.sha256Digest(for: $0) }
-    let accessControl = try! EllipticCurveKeyPair.Helper.createAccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly)
-    let helper = EllipticCurveKeyPair.Helper(publicLabel: publicLabel, privateLabel: privateLabel, operationPrompt: prompt, sha256: sha256, accessControl: accessControl)
-    return EllipticCurveKeyPair.Manager(helper: helper)
+    let prompt = "Confirm payment"
+    let accessControl = try! EllipticCurveKeyPair.Config.createAccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: [.touchIDCurrentSet, .devicePasscode, .privateKeyUsage])
+    let config = EllipticCurveKeyPair.Config(publicLabel: publicLabel, privateLabel: privateLabel, operationPrompt: prompt, accessControl: accessControl)
+    return EllipticCurveKeyPair.Manager(config: config)
 }()
 ```
 See demo app for working example
@@ -54,8 +53,7 @@ See demo app for working example
 
 ```swift
 do {
-    let manager = ...
-    let key = manager.publicKey().data().der
+    let key = keypairManager.publicKey().data().der
 } catch {
     // handle error
 }
@@ -66,9 +64,8 @@ See demo app for working example
 
 ```swift
 do {
-    let manager = ...
     let digest = "some text to sign".data(using: .utf8)!
-    let signature = try manager.sign(digest)
+    let signature = try keypairManager.sign(digest)
 } catch {
     // handle error
 }
@@ -79,9 +76,8 @@ See demo app for working example
 
 ```swift
 do {
-    let manager = ...
     let digest = "some text to encrypt".data(using: .utf8)!
-    let encrypted = try manager.encrypt(digest)
+    let encrypted = try keypairManager.encrypt(digest)
 } catch {
     // handle error
 }
@@ -92,9 +88,8 @@ See demo app for working example
 
 ```swift
 do {
-    let manager = ...
     let encrypted = ...
-    let decrypted = try manager.decrypt(encrypted)
+    let decrypted = try keypairManager.decrypt(encrypted)
     let decryptedString = String.init(data: decrypted, encoding: .utf8)
 } catch {
     // handle error
