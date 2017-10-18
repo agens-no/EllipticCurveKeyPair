@@ -90,7 +90,7 @@ See demo app for working example
 do {
     let encrypted = ...
     let decrypted = try keypairManager.decrypt(encrypted)
-    let decryptedString = String.init(data: decrypted, encoding: .utf8)
+    let decryptedString = String(data: decrypted, encoding: .utf8)
 } catch {
     // handle error
 }
