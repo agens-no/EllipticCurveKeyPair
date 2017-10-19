@@ -36,11 +36,12 @@ class SecondViewController: UIViewController {
     
     struct Shared {
         static let keypair: EllipticCurveKeyPair.Manager = {
-            let publicLabel = "no.agens.sign.public"
-            let privateLabel = "no.agens.sign.private"
-            let prompt = "Confirm payment"
-            let accessControl = try! EllipticCurveKeyPair.Config.createAccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: [.userPresence, .privateKeyUsage,])
-            let config = EllipticCurveKeyPair.Config(publicLabel: publicLabel, privateLabel: privateLabel, operationPrompt: prompt, accessControl: accessControl)
+            let config = EllipticCurveKeyPair.Config(
+                publicLabel: "no.agens.sign.public",
+                privateLabel: "no.agens.sign.private",
+                operationPrompt: "Confirm payment",
+                accessControl: try! SecAccessControl.create(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: [.userPresence, .privateKeyUsage]),
+                fallbackToKeychainIfSecureEnclaveIsNotAvailable: true)
             return EllipticCurveKeyPair.Manager(config: config)
         }()
     }
@@ -94,7 +95,7 @@ class SecondViewController: UIViewController {
             }
             return digest
         }, thenAsync: { digest in
-            return try Shared.keypair.sign(digest, context: self.context)
+            return try Shared.keypair.sign(digest, authenticationContext: self.context)
         }, thenOnMain: { signature in
             self.signatureTextView.text = signature.base64EncodedString()
         }, catchToMain: { error in

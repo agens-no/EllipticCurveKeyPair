@@ -38,14 +38,17 @@ For more examples see demo app.
 ### Creating a keypair manager
 
 ```swift
-static let keypairManager: EllipticCurveKeyPair.Manager = {
-    let publicLabel = "no.agens.encrypt.public"
-    let privateLabel = "no.agens.encrypt.private"
-    let prompt = "Confirm payment"
-    let accessControl = try! EllipticCurveKeyPair.Config.createAccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: [.touchIDCurrentSet, .devicePasscode, .privateKeyUsage])
-    let config = EllipticCurveKeyPair.Config(publicLabel: publicLabel, privateLabel: privateLabel, operationPrompt: prompt, accessControl: accessControl)
-    return EllipticCurveKeyPair.Manager(config: config)
-}()
+struct KeyPair {
+  static let manager: EllipticCurveKeyPair.Manager = {
+        let config = EllipticCurveKeyPair.Config(
+            publicLabel: "no.agens.sign.public",
+            privateLabel: "no.agens.sign.private",
+            operationPrompt: "Confirm payment",
+            accessControl: try! SecAccessControl.create(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: [.userPresence, .privateKeyUsage]),
+            fallbackToKeychainIfSecureEnclaveIsNotAvailable: true)
+        return EllipticCurveKeyPair.Manager(config: config)
+    }()
+}
 ```
 See demo app for working example
 
@@ -53,7 +56,7 @@ See demo app for working example
 
 ```swift
 do {
-    let key = keypairManager.publicKey().data().DER // Data
+    let key = KeyPair.manager.publicKey().data().DER // Data
 } catch {
     // handle error
 }
@@ -64,7 +67,7 @@ See demo app for working example
 
 ```swift
 do {
-    let key = keypairManager.publicKey().data().PEM // String
+    let key = KeyPair.manager.publicKey().data().PEM // String
 } catch {
     // handle error
 }
@@ -76,7 +79,7 @@ See demo app for working example
 ```swift
 do {
     let digest = "some text to sign".data(using: .utf8)!
-    let signature = try keypairManager.sign(digest)
+    let signature = try KeyPair.manager.sign(digest)
 } catch {
     // handle error
 }
@@ -88,7 +91,7 @@ See demo app for working example
 ```swift
 do {
     let digest = "some text to encrypt".data(using: .utf8)!
-    let encrypted = try keypairManager.encrypt(digest)
+    let encrypted = try KeyPair.manager.encrypt(digest)
 } catch {
     // handle error
 }
@@ -100,7 +103,7 @@ See demo app for working example
 ```swift
 do {
     let encrypted = ...
-    let decrypted = try keypairManager.decrypt(encrypted)
+    let decrypted = try KeyPair.manager.decrypt(encrypted)
     let decryptedString = String(data: decrypted, encoding: .utf8)
 } catch {
     // handle error
@@ -108,7 +111,27 @@ do {
 ```
 See demo app for working example
 
+### Error handling
 
+#### User cancels authentication
+
+```swift
+if case let EllipticCurveKeyPair.Error.authentication(error: authenticationError) = error, authenticationError.code == .userCancel {
+    // user cancelled
+} else {
+    // other error
+}
+```
+
+#### Device not supported
+
+```swift
+if case let Error.underlying(message: _, error: underlying) = error, underlying.code == errSecUnimplemented || underlying.code == errSecAuthFailed {
+    // unsupported
+} else {
+    // other error
+}
+```
 
 ## Possbitilites
 

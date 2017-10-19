@@ -29,11 +29,12 @@ class FirstViewController: UIViewController {
     
     struct Shared {
         static let keypair: EllipticCurveKeyPair.Manager = {
-            let publicLabel = "no.agens.encrypt.public"
-            let privateLabel = "no.agens.encrypt.private"
-            let prompt = "Confirm payment"
-            let accessControl = try! EllipticCurveKeyPair.Config.createAccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: [.touchIDCurrentSet, .devicePasscode, .privateKeyUsage])
-            let config = EllipticCurveKeyPair.Config(publicLabel: publicLabel, privateLabel: privateLabel, operationPrompt: prompt, accessControl: accessControl)
+            let config = EllipticCurveKeyPair.Config(
+                publicLabel: "no.agens.encrypt.public",
+                privateLabel: "no.agens.encrypt.private",
+                operationPrompt: "Confirm payment",
+                accessControl: try! SecAccessControl.create(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: [.userPresence, .privateKeyUsage]),
+                fallbackToKeychainIfSecureEnclaveIsNotAvailable: true)
             return EllipticCurveKeyPair.Manager(config: config)
         }()
     }
@@ -146,7 +147,7 @@ class FirstViewController: UIViewController {
             guard #available(iOS 10.3, *) else {
                 throw "Can not encrypt on this device (must be iOS 10.3)"
             }
-            let result = try Shared.keypair.decrypt(encrypted, context: self.context)
+            let result = try Shared.keypair.decrypt(encrypted, authenticationContext: self.context)
             guard let decrypted = String(data: result, encoding: .utf8) else {
                 throw "Could not convert decrypted data to string"
             }
@@ -154,12 +155,7 @@ class FirstViewController: UIViewController {
         }, thenOnMain: { (decrypted) in
             self.state = .decrypted(decrypted)
         }, catchToMain: { (error) in
-            if case let EllipticCurveKeyPair.Error.authentication(error: authenticationError) = error,
-                authenticationError.code == .userCancel {
-                // user cancelled
-            } else {
-                self.state = .error(error)
-            }
+            self.state = .error(error)
         })
     }
 }
