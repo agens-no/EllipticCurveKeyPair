@@ -56,7 +56,7 @@ See demo app for working example
 
 ```swift
 do {
-    let key = KeyPair.manager.publicKey().data().DER // Data
+    let key = try KeyPair.manager.publicKey().data().DER // Data
 } catch {
     // handle error
 }
@@ -67,7 +67,7 @@ See demo app for working example
 
 ```swift
 do {
-    let key = KeyPair.manager.publicKey().data().PEM // String
+    let key = try KeyPair.manager.publicKey().data().PEM // String
 } catch {
     // handle error
 }
