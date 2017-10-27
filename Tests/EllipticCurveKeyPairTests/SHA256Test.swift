@@ -7,7 +7,7 @@
 //
 
 import XCTest
-@testable import EllipticCurveKeyPairDemo
+import EllipticCurveKeyPair
 
 extension Data {
     func toHexString() -> String {
@@ -58,4 +58,13 @@ class SHA256Test: XCTestCase {
         let expected = "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9" // echo -n "0" | openssl dgst -sha256
         XCTAssertEqual(result, expected, "Invalid conversion from msg to sha256")
     }
+    
+    static var allTests = [
+        ("testEmpty", testEmpty),
+        ("testAgainstKnownValue", testAgainstKnownValue),
+        ("testAgainstKnownValue2", testAgainstKnownValue2),
+        ("testAgainstKnownValue3", testAgainstKnownValue3),
+        ("testAgainstKnownValue4", testAgainstKnownValue4),
+        ("testAgainstKnownValue5", testAgainstKnownValue5),
+        ]
 }
