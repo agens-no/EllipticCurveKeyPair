@@ -24,16 +24,19 @@
 
 import UIKit
 import LocalAuthentication
+import EllipticCurveKeyPair
 
 class FirstViewController: UIViewController {
     
     struct Shared {
         static let keypair: EllipticCurveKeyPair.Manager = {
+            let accessControl = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: [.userPresence, .privateKeyUsage])
             let config = EllipticCurveKeyPair.Config(
                 publicLabel: "no.agens.encrypt.public",
                 privateLabel: "no.agens.encrypt.private",
-                operationPrompt: "Confirm payment",
-                accessControl: try! SecAccessControl.create(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: [.userPresence, .privateKeyUsage]),
+                operationPrompt: "Decrypt",
+                publicKeyAccessControl: accessControl,
+                privateKeyAccessControl: accessControl,
                 fallbackToKeychainIfSecureEnclaveIsNotAvailable: true)
             return EllipticCurveKeyPair.Manager(config: config)
         }()
@@ -134,7 +137,7 @@ class FirstViewController: UIViewController {
     func decrypt() {
         
         /*
-         Using the DispatchQueue.roundTrip is totally optional.
+         Using the DispatchQueue.roundTrip defined in Utils.swift is totally optional.
          What's important is that you call `decrypt` on a different thread than main.
          */
         

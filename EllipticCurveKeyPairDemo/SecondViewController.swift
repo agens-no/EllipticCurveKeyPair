@@ -24,10 +24,21 @@
 
 import UIKit
 import LocalAuthentication
+import EllipticCurveKeyPair
 
 func delay( _ delay: Double, queue: DispatchQueue = DispatchQueue.main, completion: @escaping () -> () ) {
     queue.asyncAfter(deadline: DispatchTime.now() + Double(Int64(delay * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC)) { () -> Void in
         completion()
+    }
+}
+
+extension UIDevice {
+    var isSimulator: Bool {
+        #if arch(i386) || arch(x86_64)
+            return true
+        #else
+            return false
+        #endif
     }
 }
 
@@ -36,11 +47,13 @@ class SecondViewController: UIViewController {
     
     struct Shared {
         static let keypair: EllipticCurveKeyPair.Manager = {
+            let accessControl = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: [.userPresence, .privateKeyUsage])
             let config = EllipticCurveKeyPair.Config(
                 publicLabel: "no.agens.sign.public",
                 privateLabel: "no.agens.sign.private",
-                operationPrompt: "Confirm payment",
-                accessControl: try! SecAccessControl.create(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: [.userPresence, .privateKeyUsage]),
+                operationPrompt: "Sign transaction",
+                publicKeyAccessControl: accessControl,
+                privateKeyAccessControl: accessControl,
                 fallbackToKeychainIfSecureEnclaveIsNotAvailable: true)
             return EllipticCurveKeyPair.Manager(config: config)
         }()
@@ -85,7 +98,7 @@ class SecondViewController: UIViewController {
     @IBAction func sign(_ sender: Any) {
         
         /*
-         Using the DispatchQueue.roundTrip is totally optional.
+         Using the DispatchQueue.roundTrip defined in Utils.swift is totally optional.
          What's important is that you call `sign` on a different thread than main.
          */
         
