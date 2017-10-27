@@ -227,16 +227,33 @@ public enum EllipticCurveKeyPair {
         }
         
         public func sign(_ digest: Data, privateKey: PrivateKey) throws -> Data {
-            Helper.logToConsoleIfExecutingOnMainThread()
-            if #available(iOS 10.0, *) {
-                let digestToSign = digest.sha256()
-                var error : Unmanaged<CFError>?
-                let result = SecKeyCreateSignature(privateKey.underlying, .ecdsaSignatureDigestX962SHA256, digestToSign as CFData, &error)
-                guard let signature = result else {
-                    throw Error.fromError(error?.takeRetainedValue(), message: "Could not create signature.")
+            #if os(OSX)
+                return try signUsingNewApi(digest, privateKey: privateKey)
+            #elseif os(iOS)
+                if #available(iOS 10, *) {
+                    return try signUsingNewApi(digest, privateKey: privateKey)
+                } else {
+                    return try signUsingOldApi(digest, privateKey: privateKey)
                 }
-                return signature as Data
-            } else {
+            #endif
+        }
+        
+        @available(iOS 10.0, *)
+        private func signUsingNewApi(_ digest: Data, privateKey: PrivateKey) throws -> Data {
+            Helper.logToConsoleIfExecutingOnMainThread()
+            let digestToSign = digest.sha256()
+            var error : Unmanaged<CFError>?
+            let result = SecKeyCreateSignature(privateKey.underlying, .ecdsaSignatureDigestX962SHA256, digestToSign as CFData, &error)
+            guard let signature = result else {
+                throw Error.fromError(error?.takeRetainedValue(), message: "Could not create signature.")
+            }
+            return signature as Data
+        }
+        
+        @available(iOS, deprecated: 10.0, message: "This method and extra complexity will be removed when 9.0 is obsolete.")
+        private func signUsingOldApi(_ digest: Data, privateKey: PrivateKey) throws -> Data {
+            #if os(iOS)
+                Helper.logToConsoleIfExecutingOnMainThread()
                 let digestToSign = digest.sha256()
                 
                 var digestToSignBytes = [UInt8](repeating: 0, count: digestToSign.count)
@@ -252,22 +269,51 @@ public enum EllipticCurveKeyPair {
                 
                 let signature = Data(bytes: &signatureBytes, count: signatureLength)
                 return signature
-            }
+            #else
+                throw Error.inconcistency(message: "This method is not supported. This is likely an internal bug in \(EllipticCurveKeyPair.self).")
+            #endif
         }
         
         public func verify(signature: Data, digest: Data, publicKey: PublicKey) throws -> Bool {
-            let sha = digest.sha256()
-            var shaBytes = [UInt8](repeating: 0, count: sha.count)
-            sha.copyBytes(to: &shaBytes, count: sha.count)
-            
-            var signatureBytes = [UInt8](repeating: 0, count: signature.count)
-            signature.copyBytes(to: &signatureBytes, count: signature.count)
-            
-            let status = SecKeyRawVerify(publicKey.underlying, .PKCS1, &shaBytes, shaBytes.count, &signatureBytes, signatureBytes.count)
-            guard status == errSecSuccess else {
-                throw Error.osStatus(message: "Could not verify signature.", osStatus: status)
+            #if os(OSX)
+                return try verifyUsingNewApi(signature:signature, digest: digest, publicKey: publicKey)
+            #elseif os(iOS)
+                if #available(iOS 10, *) {
+                    return try verifyUsingNewApi(signature:signature, digest: digest, publicKey: publicKey)
+                } else {
+                    return try verifyUsingOldApi(signature:signature, digest: digest, publicKey: publicKey)
+                }
+            #endif
+        }
+        
+        @available(iOS 10.0, *)
+        private func verifyUsingNewApi(signature: Data, digest: Data, publicKey: PublicKey) throws -> Bool {
+            var error : Unmanaged<CFError>?
+            let valid = SecKeyVerifySignature(publicKey.underlying, .ecdsaSignatureDigestX962SHA256, digest as CFData, signature as CFData, &error)
+            if let error = error?.takeRetainedValue() {
+                throw Error.fromError(error, message: "Could not create signature.")
             }
-            return true
+            return valid
+        }
+        
+        @available(iOS, deprecated: 10.0, message: "This method and extra complexity will be removed when 9.0 is obsolete.")
+        private func verifyUsingOldApi(signature: Data, digest: Data, publicKey: PublicKey) throws -> Bool {
+            #if os(iOS)
+                let sha = digest.sha256()
+                var shaBytes = [UInt8](repeating: 0, count: sha.count)
+                sha.copyBytes(to: &shaBytes, count: sha.count)
+                
+                var signatureBytes = [UInt8](repeating: 0, count: signature.count)
+                signature.copyBytes(to: &signatureBytes, count: signature.count)
+                
+                let status = SecKeyRawVerify(publicKey.underlying, .PKCS1, &shaBytes, shaBytes.count, &signatureBytes, signatureBytes.count)
+                guard status == errSecSuccess else {
+                    throw Error.osStatus(message: "Could not verify signature.", osStatus: status)
+                }
+                return true
+            #else
+                throw Error.inconcistency(message: "Internal error.")
+            #endif
         }
         
         @available(iOS 10.3, *)
