@@ -27,24 +27,44 @@ import Foundation
 import Security
 import LocalAuthentication
 
-public struct EllipticCurveKeyPair {
+@available(OSX 10.12, iOS 9.0, *)
+public enum EllipticCurveKeyPair {
         
     public struct Config {
         
         // The label used to identify the public key in keychain
-        let publicLabel: String
+        public let publicLabel: String
         
         // The label used to identify the private key on the secure enclave
-        let privateLabel: String
+        public let privateLabel: String
         
         // The text presented to the user about why we need his/her fingerprint / device pin
-        let operationPrompt: String?
+        public let operationPrompt: String?
         
-        // The access control used to manage the access to the keypair
-        let accessControl: SecAccessControl
+        // The access control used to manage the access to the public key
+        public let publicKeyAccessControl: AccessControl
         
-        // The access control used to manage the access to the keypair
-        let fallbackToKeychainIfSecureEnclaveIsNotAvailable: Bool
+        // The access control used to manage the access to the private key
+        public let privateKeyAccessControl: AccessControl
+        
+        // iOS Simulator doesn't have any Secure Enclave.
+        // Thus if you would like your app to be able to run on simulator it may be useful to
+        // set this to true – allowing you to decrypt and sign without the Secure Enclave.
+        public let fallbackToKeychainIfSecureEnclaveIsNotAvailable: Bool
+        
+        public init(publicLabel: String,
+                    privateLabel: String,
+                    operationPrompt: String?,
+                    publicKeyAccessControl: AccessControl,
+                    privateKeyAccessControl: AccessControl,
+                    fallbackToKeychainIfSecureEnclaveIsNotAvailable: Bool) {
+            self.publicLabel = publicLabel
+            self.privateLabel = privateLabel
+            self.operationPrompt = operationPrompt
+            self.publicKeyAccessControl = publicKeyAccessControl
+            self.privateKeyAccessControl = privateKeyAccessControl
+            self.fallbackToKeychainIfSecureEnclaveIsNotAvailable = fallbackToKeychainIfSecureEnclaveIsNotAvailable
+        }
     }
     
     // A stateful and opiniated manager for using the secure enclave and keychain
@@ -55,47 +75,47 @@ public struct EllipticCurveKeyPair {
     // and create your own manager
     public final class Manager {
         
-        let config: Config
+        public let config: Config
         private var cache: (`public`: PublicKey, `private`: PrivateKey)? = nil
         private let helper: Helper
         
-        init(config: Config) {
+        public init(config: Config) {
             self.config = config
             self.helper = Helper(config: config)
         }
         
-        func deleteKeyPair() throws {
+        public func deleteKeyPair() throws {
             cache = nil
             try helper.delete()
         }
         
-        func publicKey() throws -> PublicKey {
+        public func publicKey() throws -> PublicKey {
             return try getKeys().public
         }
         
-        func privateKey() throws -> PrivateKey {
+        public func privateKey() throws -> PrivateKey {
             return try getKeys().private
         }
         
-        func verify(signature: Data, originalDigest: Data) throws -> Bool {
+        public func verify(signature: Data, originalDigest: Data) throws -> Bool {
             return try helper.verify(signature: signature, digest: originalDigest, publicKey: getKeys().public)
         }
         
-        func sign(_ digest: Data, authenticationContext: LAContext? = nil) throws -> Data {
+        public func sign(_ digest: Data, authenticationContext: LAContext? = nil) throws -> Data {
             return try helper.sign(digest, privateKey: getKeys().private.accessibleWithAuthenticationContext(authenticationContext))
         }
         
         @available(iOS 10.3, *) // API available at 10.0, but bugs made it unusable on versions lower than 10.3
-        func encrypt(_ digest: Data) throws -> Data {
+        public func encrypt(_ digest: Data) throws -> Data {
             return try helper.encrypt(digest, publicKey: getKeys().public)
         }
         
         @available(iOS 10.3, *) // API available at 10.0, but bugs made it unusable on versions lower than 10.3
-        func decrypt(_ encrypted: Data, authenticationContext: LAContext? = nil) throws -> Data {
+        public func decrypt(_ encrypted: Data, authenticationContext: LAContext? = nil) throws -> Data {
             return try helper.decrypt(encrypted, privateKey: getKeys().private.accessibleWithAuthenticationContext(authenticationContext))
         }
         
-        func getKeys() throws -> (`public`: PublicKey, `private`: PrivateKey) {
+        public func getKeys() throws -> (`public`: PublicKey, `private`: PrivateKey) {
             
             if let keys = cache {
                 return keys
@@ -131,9 +151,9 @@ public struct EllipticCurveKeyPair {
     public struct Helper {
         
         // The user visible label in the device's key chain
-        let config: Config
+        public let config: Config
         
-        func get() throws -> (`public`: PublicKey, `private`: PrivateKey) {
+        public func get() throws -> (`public`: PublicKey, `private`: PrivateKey) {
             do {
                 let publicKey = try Query.getPublicKey(labeled: config.publicLabel)
                 let privateKey = try Query.getPrivateKey(labeled: config.privateLabel)
@@ -143,11 +163,11 @@ public struct EllipticCurveKeyPair {
             }
         }
         
-        func generateAndStoreOnSecureEnclave() throws -> (`public`: PublicKey, `private`: PrivateKey) {
+        public func generateAndStoreOnSecureEnclave() throws -> (`public`: PublicKey, `private`: PrivateKey) {
             var privateKeyParams: [String: Any] = [
                 kSecAttrLabel as String: config.privateLabel,
                 kSecAttrIsPermanent as String: true,
-                kSecAttrAccessControl as String: config.accessControl,
+                kSecAttrAccessControl as String: try config.privateKeyAccessControl.underlying(),
                 kSecUseAuthenticationUI as String: kSecUseAuthenticationUIAllow,
                 ]
             
@@ -172,15 +192,15 @@ public struct EllipticCurveKeyPair {
             }
             let publicKey = PublicKey(publicSec)
             let privateKey = PrivateKey(privateSec)
-            try Query.forceSavePublicKey(publicKey, label: config.publicLabel)
+            try Query.forceSavePublicKey(publicKey, label: config.publicLabel, accessControl: try config.publicKeyAccessControl.underlying())
             return (public: publicKey, private: privateKey)
         }
         
-        func generateAndStoreInKeyChain() throws -> (`public`: PublicKey, `private`: PrivateKey) {
+        public func generateAndStoreInKeyChain() throws -> (`public`: PublicKey, `private`: PrivateKey) {
             let privateKeyParams: [String: Any] = [
                 kSecAttrLabel as String: config.privateLabel,
                 kSecAttrIsPermanent as String: true,
-                kSecAttrAccessControl as String: try SecAccessControl.create(protection: kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly, flags: [.userPresence]),
+                kSecAttrAccessControl as String: try config.privateKeyAccessControl.underlying(),
                 ]
             let params: [String: Any] = [
                 kSecAttrKeyType as String: Constants.attrKeyTypeEllipticCurve,
@@ -197,16 +217,16 @@ public struct EllipticCurveKeyPair {
             }
             let publicKey = PublicKey(publicSec)
             let privateKey = PrivateKey(privateSec)
-            try Query.forceSavePublicKey(publicKey, label: config.publicLabel)
+            try Query.forceSavePublicKey(publicKey, label: config.publicLabel, accessControl: try config.publicKeyAccessControl.underlying())
             return (public: publicKey, private: privateKey)
         }
         
-        func delete() throws {
+        public func delete() throws {
             try Query.deletePublicKey(labeled: config.publicLabel)
             try Query.deletePrivateKey(labeled: config.privateLabel)
         }
         
-        func sign(_ digest: Data, privateKey: PrivateKey) throws -> Data {
+        public func sign(_ digest: Data, privateKey: PrivateKey) throws -> Data {
             Helper.logToConsoleIfExecutingOnMainThread()
             if #available(iOS 10.0, *) {
                 let digestToSign = digest.sha256()
@@ -235,7 +255,7 @@ public struct EllipticCurveKeyPair {
             }
         }
         
-        func verify(signature: Data, digest: Data, publicKey: PublicKey) throws -> Bool {
+        public func verify(signature: Data, digest: Data, publicKey: PublicKey) throws -> Bool {
             let sha = digest.sha256()
             var shaBytes = [UInt8](repeating: 0, count: sha.count)
             sha.copyBytes(to: &shaBytes, count: sha.count)
@@ -251,7 +271,7 @@ public struct EllipticCurveKeyPair {
         }
         
         @available(iOS 10.3, *)
-        func encrypt(_ digest: Data, publicKey: PublicKey) throws -> Data {
+        public func encrypt(_ digest: Data, publicKey: PublicKey) throws -> Data {
             var error : Unmanaged<CFError>?
             let result = SecKeyCreateEncryptedData(publicKey.underlying, SecKeyAlgorithm.eciesEncryptionStandardX963SHA256AESGCM, digest as CFData, &error)
             guard let data = result else {
@@ -261,7 +281,7 @@ public struct EllipticCurveKeyPair {
         }
         
         @available(iOS 10.3, *)
-        func decrypt(_ digest: Data, privateKey: PrivateKey) throws -> Data {
+        public func decrypt(_ digest: Data, privateKey: PrivateKey) throws -> Data {
             Helper.logToConsoleIfExecutingOnMainThread()
             var error : Unmanaged<CFError>?
             let result = SecKeyCreateDecryptedData(privateKey.underlying, SecKeyAlgorithm.eciesEncryptionStandardX963SHA256AESGCM, digest as CFData, &error)
@@ -271,7 +291,7 @@ public struct EllipticCurveKeyPair {
             return data as Data
         }
         
-        static func logToConsoleIfExecutingOnMainThread() {
+        public static func logToConsoleIfExecutingOnMainThread() {
             if Thread.isMainThread {
                 let _ = LogOnce.shouldNotBeMainThread
             }
@@ -339,11 +359,12 @@ public struct EllipticCurveKeyPair {
             }
         }
         
-        static func forceSavePublicKey(_ publicKey: PublicKey, label: String) throws {
+        static func forceSavePublicKey(_ publicKey: PublicKey, label: String, accessControl: SecAccessControl) throws {
             let query: [String: Any] = [
                 kSecClass as String: kSecClassKey,
                 kSecAttrLabel as String: label,
-                kSecValueRef as String: publicKey.underlying
+                kSecValueRef as String: publicKey.underlying,
+                kSecAttrAccessControl as String: accessControl
                 ]
             var raw: CFTypeRef?
             var status = SecItemAdd(query as CFDictionary, &raw)
@@ -358,9 +379,9 @@ public struct EllipticCurveKeyPair {
     }
     
     public struct Constants {
-        static var x9_62Header: Data = Data(bytes: [UInt8]([0x30, 0x59, 0x30, 0x13, 0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01, 0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07, 0x03, 0x42, 0x00]))
-        static let noCompression: UInt8 = 4
-        static var attrKeyTypeEllipticCurve: String = {
+        public static var x9_62Header: Data = Data(bytes: [UInt8]([0x30, 0x59, 0x30, 0x13, 0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01, 0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07, 0x03, 0x42, 0x00]))
+        public static let noCompression: UInt8 = 4
+        public static var attrKeyTypeEllipticCurve: String = {
             if #available(iOS 10.0, *) {
                 return kSecAttrKeyTypeECSECPrimeRandom as String
             } else {
@@ -391,7 +412,7 @@ public struct EllipticCurveKeyPair {
          */
         
         // As received from Security framework
-        let raw: Data
+        public let raw: Data
         
         // The open ssl compatible DER format X.509
         //
@@ -401,13 +422,13 @@ public struct EllipticCurveKeyPair {
         // See the following DevForums post for more details on this.
         //
         // <https://forums.developer.apple.com/message/84684#84684>.
-        lazy var DER: Data = {
+        public lazy var DER: Data = {
             var result = Constants.x9_62Header
             result.append(self.raw)
             return result
         }()
         
-        lazy var PEM: String = {
+        public lazy var PEM: String = {
             var lines = String()
             lines.append("-----BEGIN PUBLIC KEY-----\n")
             lines.append(self.DER.base64EncodedString(options: .lineLength64Characters))
@@ -415,22 +436,22 @@ public struct EllipticCurveKeyPair {
             return lines
         }()
         
-        fileprivate init(_ raw: Data) {
+        internal init(_ raw: Data) {
             self.raw = raw
         }
     }
     
     public class Key {
         
-        let underlying: SecKey
+        public let underlying: SecKey
         
-        fileprivate init(_ underlying: SecKey) {
+        internal init(_ underlying: SecKey) {
             self.underlying = underlying
         }
         
         private var cachedAttributes: [String:Any]? = nil
         
-        func attributes() throws -> [String:Any] {
+        public func attributes() throws -> [String:Any] {
             if let attributes = cachedAttributes {
                 return attributes
             } else {
@@ -463,7 +484,7 @@ public struct EllipticCurveKeyPair {
         
         private var cachedData: PublicKeyData? = nil
         
-        func data() throws -> PublicKeyData {
+        public func data() throws -> PublicKeyData {
             if let data = cachedData {
                 return data
             } else {
@@ -497,7 +518,7 @@ public struct EllipticCurveKeyPair {
     
     public final class PrivateKey: Key {
         
-        func isStoredOnSecureEnclave() throws -> Bool {
+        public func isStoredOnSecureEnclave() throws -> Bool {
             let attributes = try self.attributes()
             let attribute = attributes[kSecAttrTokenID as String] as? String
             return attribute == (kSecAttrTokenIDSecureEnclave as String)
@@ -511,7 +532,7 @@ public struct EllipticCurveKeyPair {
             return attribute as! SecAccessControl
         }
         
-        func label() throws -> String {
+        public func label() throws -> String {
             let attributes = try self.attributes()
             guard let attribute = attributes[kSecAttrLabel as String] as? String else {
                 throw Error.inconcistency(message: "We've got a private key, but we are missing its label.")
@@ -519,13 +540,36 @@ public struct EllipticCurveKeyPair {
             return attribute
         }
         
-        func accessibleWithAuthenticationContext(_ context: LAContext?) throws -> PrivateKey {
+        public func accessibleWithAuthenticationContext(_ context: LAContext?) throws -> PrivateKey {
             var query = Query.privateKeyQuery(labeled: try label())
             query[kSecUseAuthenticationContext as String] = context
             let underlying = try Query.getKey(query)
             return PrivateKey(underlying)
         }
         
+    }
+    
+    public final class AccessControl {
+        
+        // E.g. kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        public let protection: CFTypeRef
+        
+        // E.g. [.userPresence, .privateKeyUsage]
+        public let flags: SecAccessControlCreateFlags
+        
+        public init(protection: CFTypeRef, flags: SecAccessControlCreateFlags) {
+            self.protection = protection
+            self.flags = flags
+        }
+        
+        public func underlying() throws -> SecAccessControl {
+            var error: Unmanaged<CFError>?
+            let result = SecAccessControlCreateWithFlags(kCFAllocatorDefault, protection, flags, &error)
+            guard let accessControl = result else {
+                throw EllipticCurveKeyPair.Error.fromError(error?.takeRetainedValue(), message: "Tried creating access control object with flags \(flags) and protection \(protection)")
+            }
+            return accessControl
+        }
     }
     
     public enum Error: LocalizedError {
@@ -571,47 +615,5 @@ public struct EllipticCurveKeyPair {
             return .inconcistency(message: "\(message) Unknown error occured.")
         }
         
-    }
-}
-
-extension DispatchQueue {
-    
-    static func roundTrip<T, Y>(_ block: () throws -> T,
-                                thenAsync: @escaping (T) throws -> Y,
-                                thenOnMain: @escaping (Y) throws -> Void,
-                                catchToMain: @escaping (Error) -> Void) {
-        do {
-            let resultFromMain = try block()
-            DispatchQueue.global(qos: .userInitiated).async {
-                do {
-                    let resultFromBackground = try thenAsync(resultFromMain)
-                    DispatchQueue.main.async {
-                        do {
-                            try thenOnMain(resultFromBackground)
-                        } catch {
-                            catchToMain(error)
-                        }
-                    }
-                } catch {
-                    DispatchQueue.main.async {
-                        catchToMain(error)
-                    }
-                }
-            }
-        } catch {
-            catchToMain(error)
-        }
-    }
-}
-
-extension SecAccessControl {
-    @available(iOSApplicationExtension 9.0, *)
-    static func create(protection: CFString, flags: SecAccessControlCreateFlags) throws -> SecAccessControl {
-        var error: Unmanaged<CFError>?
-        let result = SecAccessControlCreateWithFlags(kCFAllocatorDefault, protection, flags, &error)
-        guard let accessControl = result else {
-            throw EllipticCurveKeyPair.Error.fromError(error?.takeRetainedValue(), message: "Tried creating access control object with flags \(flags) and protection \(protection)")
-        }
-        return accessControl
     }
 }
