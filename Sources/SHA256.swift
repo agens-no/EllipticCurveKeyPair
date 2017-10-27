@@ -1,4 +1,4 @@
- 
+//
 // This is a heavily altered version of SHA2.swift found in CryptoSwift.
 // I tried to remove everything that is not about SHA256.
 //
