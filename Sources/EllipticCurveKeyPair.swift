@@ -627,7 +627,7 @@ public enum EllipticCurveKeyPair {
         public var errorDescription: String? {
             switch self {
             case let .underlying(message: message, error: error):
-                return "\(message). \(error.localizedDescription)"
+                return "\(message) \(error.localizedDescription)"
             case let .authentication(error: error):
                 return "Authentication failed. \(error.localizedDescription)"
             case let .inconcistency(message: message):
