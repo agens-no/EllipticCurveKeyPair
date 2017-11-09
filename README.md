@@ -26,9 +26,20 @@ I found it tricky to figure out how to use the `SecKeyRawVerify`, `SecKeyGenerat
 
 ## Installation
 
+#### Manual
+
 Just drag the [Sources/EllipticCurveKeyPair.swift](Sources/EllipticCurveKeyPair.swift) and [Sources/SHA256.swift](Sources/SHA256.swift) file into your Xcode project.
 
+#### Cocoapods
 
+```
+pod EllipticCurveKeyPair
+```
+#### Carthage
+
+```
+github "agens-no/EllipticCurveKeyPair"
+```
 
 
 ## Usage guide and examples
@@ -40,12 +51,14 @@ For more examples see demo app.
 ```swift
 struct KeyPair {
   static let manager: EllipticCurveKeyPair.Manager = {
+        let accessControlPublic = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAlways, flags: [])
+        let accessControlPrivate = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: [.userPresence, .privateKeyUsage])
         let config = EllipticCurveKeyPair.Config(
-            publicLabel: "no.agens.sign.public",
-            privateLabel: "no.agens.sign.private",
-            operationPrompt: "Confirm payment",
-            accessControl: try! SecAccessControl.create(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: [.userPresence, .privateKeyUsage]),
-            fallbackToKeychainIfSecureEnclaveIsNotAvailable: true)
+            publicLabel: "no.bankaxept.sign.public",
+            privateLabel: "no.bankaxept.sign.private",
+            operationPrompt: "Bekreft avtale eller betaling",
+            publicKeyAccessControl: accessControlPublic,
+            privateKeyAccessControl: accessControlPrivate)
         return EllipticCurveKeyPair.Manager(config: config)
     }()
 }
@@ -113,23 +126,32 @@ See demo app for working example
 
 ### Error handling
 
-#### User cancels authentication
+The most common thing is to catch error related to
+- Secure Enclave not being available
+- User cancels fingerprint dialog
+- No fingerprints enrolled
 
+With `do/catch`:
 ```swift
-if case let EllipticCurveKeyPair.Error.authentication(error: authenticationError) = error, authenticationError.code == .userCancel {
-    // user cancelled
-} else {
-    // other error
+do {
+    let decrypted = try KeyPair.manager.decrypt(encrypted)
+} catch EllipticCurveKeyPair.Error.underlying(_, let underlying) where underlying.code == errSecUnimplemented {
+    print("Unsupported device")
+} catch EllipticCurveKeyPair.Error.authentication(let authenticationError) where authenticationError.code == .userCancel {
+    print("User cancelled/dismissed authentication dialog")
+} catch {
+    print("Some other error occured. Error \(error)")
 }
 ```
 
-#### Device not supported
-
+With `if let`:
 ```swift
-if case let Error.underlying(message: _, error: underlying) = error, underlying.code == errSecUnimplemented || underlying.code == errSecAuthFailed {
-    // unsupported
+if case let EllipticCurveKeyPair.Error.underlying(_, underlying) = error, underlying.code == errSecUnimplemented {
+    print("Unsupported device")
+} else if case let EllipticCurveKeyPair.Error.authentication(authenticationError), authenticationError.code == .userCancel {
+  print("User cancelled/dismissed authentication dialog")
 } else {
-    // other error
+  print("Some other error occured. Error \(error)")
 }
 ```
 
