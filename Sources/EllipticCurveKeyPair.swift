@@ -47,6 +47,10 @@ public enum EllipticCurveKeyPair {
         // The access control used to manage the access to the private key
         public let privateKeyAccessControl: AccessControl
         
+        public let publicKeyAccessGroup: String?
+        
+        public let privateKeyAccessGroup: String?
+        
         // iOS Simulator doesn't have any Secure Enclave.
         // Thus if you would like your app to be able to run on simulator it may be useful to
         // set this to true – allowing you to decrypt and sign without the Secure Enclave.
@@ -57,12 +61,16 @@ public enum EllipticCurveKeyPair {
                     operationPrompt: String?,
                     publicKeyAccessControl: AccessControl,
                     privateKeyAccessControl: AccessControl,
-                    fallbackToKeychainIfSecureEnclaveIsNotAvailable: Bool) {
+                    publicKeyAccessGroup: String? = nil,
+                    privateKeyAccessGroup: String? = nil,
+                    fallbackToKeychainIfSecureEnclaveIsNotAvailable: Bool = false) {
             self.publicLabel = publicLabel
             self.privateLabel = privateLabel
             self.operationPrompt = operationPrompt
             self.publicKeyAccessControl = publicKeyAccessControl
             self.privateKeyAccessControl = privateKeyAccessControl
+            self.publicKeyAccessGroup = publicKeyAccessGroup
+            self.privateKeyAccessGroup = privateKeyAccessGroup
             self.fallbackToKeychainIfSecureEnclaveIsNotAvailable = fallbackToKeychainIfSecureEnclaveIsNotAvailable
         }
     }
@@ -132,7 +140,7 @@ public enum EllipticCurveKeyPair {
                 return keyPair
             } catch {
                 if case let Error.underlying(message: _, error: underlying) = error,
-                    underlying.code == errSecUnimplemented || underlying.code == errSecAuthFailed,
+                    underlying.code == errSecUnimplemented,
                     config.fallbackToKeychainIfSecureEnclaveIsNotAvailable {
                     let keyPair = try helper.generateAndStoreInKeyChain()
                     cache = keyPair
@@ -155,8 +163,8 @@ public enum EllipticCurveKeyPair {
         
         public func get() throws -> (`public`: PublicKey, `private`: PrivateKey) {
             do {
-                let publicKey = try Query.getPublicKey(labeled: config.publicLabel)
-                let privateKey = try Query.getPrivateKey(labeled: config.privateLabel)
+                let publicKey = try Query.getPublicKey(labeled: config.publicLabel, accessGroup: config.publicKeyAccessGroup)
+                let privateKey = try Query.getPrivateKey(labeled: config.privateLabel, accessGroup: config.privateKeyAccessGroup)
                 return (public: publicKey, private: privateKey)
             } catch let error {
                 throw error
@@ -164,51 +172,18 @@ public enum EllipticCurveKeyPair {
         }
         
         public func generateAndStoreOnSecureEnclave() throws -> (`public`: PublicKey, `private`: PrivateKey) {
-            var privateKeyParams: [String: Any] = [
-                kSecAttrLabel as String: config.privateLabel,
-                kSecAttrIsPermanent as String: true,
-                kSecAttrAccessControl as String: try config.privateKeyAccessControl.underlying(),
-                kSecUseAuthenticationUI as String: kSecUseAuthenticationUIAllow,
-                ]
-            
-            if let operationPrompt = config.operationPrompt {
-                privateKeyParams[kSecUseOperationPrompt as String] = operationPrompt
-            }
-            
-            let params: [String: Any] = [
-                kSecAttrKeyType as String: Constants.attrKeyTypeEllipticCurve,
-                kSecAttrTokenID as String: kSecAttrTokenIDSecureEnclave,
-                kSecPrivateKeyAttrs as String: privateKeyParams,
-                kSecAttrKeySizeInBits as String: 256,
-                ]
-            
-            var publicOptional, privateOptional: SecKey?
-            let status = SecKeyGeneratePair(params as CFDictionary, &publicOptional, &privateOptional)
-            guard status == errSecSuccess else {
-                throw Error.osStatus(message: "Could not generate keypair.", osStatus: status)
-            }
-            guard let publicSec = publicOptional, let privateSec = privateOptional else {
-                throw Error.inconcistency(message: "Created private public key pair successfully, but weren't able to retreive it.")
-            }
-            let publicKey = PublicKey(publicSec)
-            let privateKey = PrivateKey(privateSec)
-            try Query.forceSavePublicKey(publicKey, label: config.publicLabel, accessControl: try config.publicKeyAccessControl.underlying())
-            return (public: publicKey, private: privateKey)
+            let query = try Query.generateKeyPairQuery(config: config, secureEnclave: true)
+            return try generateKeyPair(query: query)
         }
         
         public func generateAndStoreInKeyChain() throws -> (`public`: PublicKey, `private`: PrivateKey) {
-            let privateKeyParams: [String: Any] = [
-                kSecAttrLabel as String: config.privateLabel,
-                kSecAttrIsPermanent as String: true,
-                kSecAttrAccessControl as String: try config.privateKeyAccessControl.underlying(),
-                ]
-            let params: [String: Any] = [
-                kSecAttrKeyType as String: Constants.attrKeyTypeEllipticCurve,
-                kSecPrivateKeyAttrs as String: privateKeyParams,
-                kSecAttrKeySizeInBits as String: 256,
-                ]
+            let query = try Query.generateKeyPairQuery(config: config, secureEnclave: false)
+            return try generateKeyPair(query: query)
+        }
+        
+        private func generateKeyPair(query: [String:Any]) throws -> (`public`: PublicKey, `private`: PrivateKey) {
             var publicOptional, privateOptional: SecKey?
-            let status = SecKeyGeneratePair(params as CFDictionary, &publicOptional, &privateOptional)
+            let status = SecKeyGeneratePair(query as CFDictionary, &publicOptional, &privateOptional)
             guard status == errSecSuccess else {
                 throw Error.osStatus(message: "Could not generate keypair.", osStatus: status)
             }
@@ -217,13 +192,12 @@ public enum EllipticCurveKeyPair {
             }
             let publicKey = PublicKey(publicSec)
             let privateKey = PrivateKey(privateSec)
-            try Query.forceSavePublicKey(publicKey, label: config.publicLabel, accessControl: try config.publicKeyAccessControl.underlying())
             return (public: publicKey, private: privateKey)
         }
         
         public func delete() throws {
-            try Query.deletePublicKey(labeled: config.publicLabel)
-            try Query.deletePrivateKey(labeled: config.privateLabel)
+            try Query.deletePublicKey(labeled: config.publicLabel, accessGroup: config.publicKeyAccessGroup)
+            try Query.deletePrivateKey(labeled: config.privateLabel, accessGroup: config.privateKeyAccessGroup)
         }
         
         public func sign(_ digest: Data, privateKey: PrivateKey) throws -> Data {
@@ -288,8 +262,9 @@ public enum EllipticCurveKeyPair {
         
         @available(iOS 10.0, *)
         private func verifyUsingNewApi(signature: Data, digest: Data, publicKey: PublicKey) throws -> Bool {
+            let sha = digest.sha256()
             var error : Unmanaged<CFError>?
-            let valid = SecKeyVerifySignature(publicKey.underlying, .ecdsaSignatureDigestX962SHA256, digest as CFData, signature as CFData, &error)
+            let valid = SecKeyVerifySignature(publicKey.underlying, .ecdsaSignatureDigestX962SHA256, sha as CFData, signature as CFData, &error)
             if let error = error?.takeRetainedValue() {
                 throw Error.fromError(error, message: "Could not create signature.")
             }
@@ -361,65 +336,95 @@ public enum EllipticCurveKeyPair {
             return result as! SecKey
         }
         
-        static func publicKeyQuery(labeled: String) -> [String:Any] {
-            return [
+        static func publicKeyQuery(labeled: String, accessGroup: String?) -> [String:Any] {
+            var params: [String:Any] = [
                 kSecClass as String: kSecClassKey,
                 kSecAttrKeyClass as String: kSecAttrKeyClassPublic,
                 kSecAttrLabel as String: labeled,
                 kSecReturnRef as String: true,
             ]
+            if let accessGroup = accessGroup {
+                params[kSecAttrAccessGroup as String] = accessGroup
+            }
+            return params
         }
         
-        static func privateKeyQuery(labeled: String) -> [String: Any] {
-            return [
+        static func privateKeyQuery(labeled: String, accessGroup: String?) -> [String: Any] {
+            var params: [String:Any] = [
                 kSecClass as String: kSecClassKey,
                 kSecAttrKeyClass as String: kSecAttrKeyClassPrivate,
                 kSecAttrLabel as String: labeled,
                 kSecReturnRef as String: true,
                 ]
+            if let accessGroup = accessGroup {
+                params[kSecAttrAccessGroup as String] = accessGroup
+            }
+            return params
         }
         
-        static func getPublicKey(labeled: String) throws -> PublicKey {
-            let query = publicKeyQuery(labeled: labeled)
+        static func generateKeyPairQuery(config: Config, secureEnclave: Bool) throws -> [String:Any] {
+            
+            // private
+            var privateKeyParams: [String: Any] = [
+                kSecAttrLabel as String: config.privateLabel,
+                kSecAttrIsPermanent as String: true,
+                kSecAttrAccessControl as String: try config.privateKeyAccessControl.underlying(),
+                kSecUseAuthenticationUI as String: kSecUseAuthenticationUIAllow,
+                ]
+            if secureEnclave {
+                privateKeyParams[kSecAttrTokenID as String] = kSecAttrTokenIDSecureEnclave
+            }
+            if let operationPrompt = config.operationPrompt {
+                privateKeyParams[kSecUseOperationPrompt as String] = operationPrompt
+            }
+            if let privateKeyAccessGroup = config.privateKeyAccessGroup {
+                privateKeyParams[kSecAttrAccessGroup as String] = privateKeyAccessGroup
+            }
+            
+            // public
+            var publicKeyParams: [String: Any] = [
+                kSecAttrLabel as String: config.publicLabel,
+                kSecAttrIsPermanent as String: true,
+                kSecAttrAccessControl as String: try config.publicKeyAccessControl.underlying(),
+                ]
+            if let publicKeyAccessGroup = config.publicKeyAccessGroup {
+                publicKeyParams[kSecAttrAccessGroup as String] = publicKeyAccessGroup
+            }
+            
+            // combined
+            let params: [String: Any] = [
+                kSecAttrKeyType as String: Constants.attrKeyTypeEllipticCurve,
+                kSecPrivateKeyAttrs as String: privateKeyParams,
+                kSecPublicKeyAttrs as String: publicKeyParams,
+                kSecAttrKeySizeInBits as String: 256,
+                ]
+            
+            return params
+        }
+        
+        static func getPublicKey(labeled: String, accessGroup: String?) throws -> PublicKey {
+            let query = publicKeyQuery(labeled: labeled, accessGroup: accessGroup)
             return PublicKey(try getKey(query))
         }
         
-        static func getPrivateKey(labeled: String) throws -> PrivateKey {
-            let query = privateKeyQuery(labeled: labeled)
+        static func getPrivateKey(labeled: String, accessGroup: String?) throws -> PrivateKey {
+            let query = privateKeyQuery(labeled: labeled, accessGroup: accessGroup)
             return PrivateKey(try getKey(query))
         }
         
-        static func deletePublicKey(labeled: String) throws {
-            let query = publicKeyQuery(labeled: labeled) as CFDictionary
+        static func deletePublicKey(labeled: String, accessGroup: String?) throws {
+            let query = publicKeyQuery(labeled: labeled, accessGroup: accessGroup) as CFDictionary
             let status = SecItemDelete(query as CFDictionary)
             guard status == errSecSuccess || status == errSecItemNotFound else {
                 throw Error.osStatus(message: "Could not delete private key.", osStatus: status)
             }
         }
         
-        static func deletePrivateKey(labeled: String) throws {
-            let query = privateKeyQuery(labeled: labeled) as CFDictionary
+        static func deletePrivateKey(labeled: String, accessGroup: String?) throws {
+            let query = privateKeyQuery(labeled: labeled, accessGroup: accessGroup) as CFDictionary
             let status = SecItemDelete(query as CFDictionary)
             guard status == errSecSuccess || status == errSecItemNotFound else {
                 throw Error.osStatus(message: "Could not delete private key.", osStatus: status)
-            }
-        }
-        
-        static func forceSavePublicKey(_ publicKey: PublicKey, label: String, accessControl: SecAccessControl) throws {
-            let query: [String: Any] = [
-                kSecClass as String: kSecClassKey,
-                kSecAttrLabel as String: label,
-                kSecValueRef as String: publicKey.underlying,
-                kSecAttrAccessControl as String: accessControl
-                ]
-            var raw: CFTypeRef?
-            var status = SecItemAdd(query as CFDictionary, &raw)
-            if status == errSecDuplicateItem {
-                status = SecItemDelete(query as CFDictionary)
-                status = SecItemAdd(query as CFDictionary, &raw)
-            }
-            guard status == errSecSuccess else {
-                throw Error.osStatus(message: "Could not save public key", osStatus: status)
             }
         }
     }
@@ -477,7 +482,7 @@ public enum EllipticCurveKeyPair {
         public lazy var PEM: String = {
             var lines = String()
             lines.append("-----BEGIN PUBLIC KEY-----\n")
-            lines.append(self.DER.base64EncodedString(options: .lineLength64Characters))
+            lines.append(self.DER.base64EncodedString(options: [.lineLength64Characters, .endLineWithCarriageReturn]))
             lines.append("\n-----END PUBLIC KEY-----")
             return lines
         }()
@@ -505,6 +510,24 @@ public enum EllipticCurveKeyPair {
                 cachedAttributes = attributes
                 return attributes
             }
+        }
+        
+        public func label() throws -> String {
+            guard let attribute = try self.attributes()[kSecAttrLabel as String] as? String else {
+                throw Error.inconcistency(message: "We've got a private key, but we are missing its label.")
+            }
+            return attribute
+        }
+        
+        public func accessGroup() throws -> String? {
+            return try self.attributes()[kSecAttrAccessGroup as String] as? String
+        }
+        
+        public func accessControl() throws -> SecAccessControl {
+            guard let attribute = try self.attributes()[kSecAttrAccessControl as String] else {
+                throw Error.inconcistency(message: "We've got a private key, but we are missing its access control.")
+            }
+            return attribute as! SecAccessControl
         }
         
         private func queryAttributes() throws -> [String:Any] {
@@ -565,29 +588,12 @@ public enum EllipticCurveKeyPair {
     public final class PrivateKey: Key {
         
         public func isStoredOnSecureEnclave() throws -> Bool {
-            let attributes = try self.attributes()
-            let attribute = attributes[kSecAttrTokenID as String] as? String
+            let attribute = try self.attributes()[kSecAttrTokenID as String] as? String
             return attribute == (kSecAttrTokenIDSecureEnclave as String)
         }
         
-        func accessControl() throws -> SecAccessControl {
-            let attributes = try self.attributes()
-            guard let attribute = attributes[kSecAttrAccessControl as String] else {
-                throw Error.inconcistency(message: "We've got a private key, but we are missing its access control.")
-            }
-            return attribute as! SecAccessControl
-        }
-        
-        public func label() throws -> String {
-            let attributes = try self.attributes()
-            guard let attribute = attributes[kSecAttrLabel as String] as? String else {
-                throw Error.inconcistency(message: "We've got a private key, but we are missing its label.")
-            }
-            return attribute
-        }
-        
         public func accessibleWithAuthenticationContext(_ context: LAContext?) throws -> PrivateKey {
-            var query = Query.privateKeyQuery(labeled: try label())
+            var query = Query.privateKeyQuery(labeled: try label(), accessGroup: try accessGroup())
             query[kSecUseAuthenticationContext as String] = context
             let underlying = try Query.getKey(query)
             return PrivateKey(underlying)
