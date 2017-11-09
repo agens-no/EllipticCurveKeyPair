@@ -217,7 +217,7 @@ PS: This script will create 4 files in your current directory.
 
 
 ## Keywords
-Security framework, Swift 3, Swift, SecKeyRawVerify, SecKeyGeneratePair, SecItemCopyMatching, secp256r1, Elliptic Curve Cryptography, ECDSA, ECDH, ASN.1, Apple, iOS, Mac OS, kSecAttrKeyTypeECSECPrimeRandom, kSecAttrKeyTypeEC, kSecAttrTokenIDSecureEnclave
+Security framework, Swift 3, Swift, SecKeyRawVerify, SecKeyGeneratePair, SecItemCopyMatching, secp256r1, Elliptic Curve Cryptography, ECDSA, ECDH, ASN.1, Apple, iOS, Mac OS, kSecAttrKeyTypeECSECPrimeRandom, kSecAttrKeyTypeEC, kSecAttrTokenIDSecureEnclave, LAContext, LocalAuthentication
 
 
 
