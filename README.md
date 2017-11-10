@@ -1,7 +1,9 @@
 EllipticCurveKeyPair 🔑🔑
 ========================
 
-Sign, verify, encrypt and decrypt using the Secure Enclave.
+Sign, verify, encrypt and decrypt using the Secure Enclave on iOS and MacOS.
+
+![](https://raw.githubusercontent.com/wiki/agens-no/EllipticCurveKeyPair/iphonex-decrypt-w-background.gif)
 
 
 
@@ -15,9 +17,6 @@ Sign, verify, encrypt and decrypt using the Secure Enclave.
 - verify the signature with openssl in command line easily
 
 Supports FaceID, TouchID, device pass code and application password.
-
-
-
 
 
 ## Nitty-gritty
