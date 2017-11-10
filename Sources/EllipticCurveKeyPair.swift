@@ -303,10 +303,10 @@ public enum EllipticCurveKeyPair {
         }
         
         @available(iOS 10.3, *)
-        public func decrypt(_ digest: Data, privateKey: PrivateKey) throws -> Data {
+        public func decrypt(_ encrypted: Data, privateKey: PrivateKey) throws -> Data {
             Helper.logToConsoleIfExecutingOnMainThread()
             var error : Unmanaged<CFError>?
-            let result = SecKeyCreateDecryptedData(privateKey.underlying, SecKeyAlgorithm.eciesEncryptionStandardX963SHA256AESGCM, digest as CFData, &error)
+            let result = SecKeyCreateDecryptedData(privateKey.underlying, SecKeyAlgorithm.eciesEncryptionStandardX963SHA256AESGCM, encrypted as CFData, &error)
             guard let data = result else {
                 throw Error.fromError(error?.takeRetainedValue(), message: "Could not decrypt.")
             }
