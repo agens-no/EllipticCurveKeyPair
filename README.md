@@ -54,9 +54,9 @@ struct KeyPair {
         let accessControlPublic = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAlways, flags: [])
         let accessControlPrivate = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: [.userPresence, .privateKeyUsage])
         let config = EllipticCurveKeyPair.Config(
-            publicLabel: "no.bankaxept.sign.public",
-            privateLabel: "no.bankaxept.sign.private",
-            operationPrompt: "Bekreft avtale eller betaling",
+            publicLabel: "payment.sign.public",
+            privateLabel: "payment.sign.private",
+            operationPrompt: "Confirm payment",
             publicKeyAccessControl: accessControlPublic,
             privateKeyAccessControl: accessControlPrivate)
         return EllipticCurveKeyPair.Manager(config: config)
