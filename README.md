@@ -14,6 +14,10 @@ Sign, verify, encrypt and decrypt using the Secure Enclave.
 - export the public key as X.509 DER with proper ASN.1 header / structure
 - verify the signature with openssl in command line easily
 
+Supports FaceID, TouchID, device pass code and application password.
+
+
+
 
 
 ## Nitty-gritty
@@ -225,7 +229,7 @@ PS: This script will create 4 files in your current directory.
 
 
 ## Keywords
-Security framework, Swift 3, Swift, SecKeyRawVerify, SecKeyGeneratePair, SecItemCopyMatching, secp256r1, Elliptic Curve Cryptography, ECDSA, ECDH, ASN.1, Apple, iOS, Mac OS, kSecAttrKeyTypeECSECPrimeRandom, kSecAttrKeyTypeEC, kSecAttrTokenIDSecureEnclave, LAContext, LocalAuthentication
+Security framework, Swift 3, Swift, SecKeyRawVerify, SecKeyGeneratePair, SecItemCopyMatching, secp256r1, Elliptic Curve Cryptography, ECDSA, ECDH, ASN.1, Apple, iOS, Mac OS, kSecAttrKeyTypeECSECPrimeRandom, kSecAttrKeyTypeEC, kSecAttrTokenIDSecureEnclave, LAContext, LocalAuthentication, FaceID, Face ID, TouchID, Touch ID, Application Password, Device Pin, Devicepin
 
 
 
