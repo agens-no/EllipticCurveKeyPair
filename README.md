@@ -237,12 +237,14 @@ The `SHA256` class (originally `SHA2.swift`) is found in the invaluable [CryptoS
 
 ## FAQ
 
-**Q: Why am I not being prompted with touch id / device pin on simulator?**  
-A: The simulator doesn’t posess any secure enclave and therefore trying to access it would just lead to errors. For your leisure we store the private key in keychain instead of the secure enclave on simulator. This makes development faster and easier. The only diff [is a single line of code](https://github.com/agens-no/EllipticCurveKeyPair/blob/70c248e83e8c0aaf73a9c27a1bce4becfe257bba/Sources/EllipticCurveKeyPair.swift#L124-L137).
+**Why am I not being prompted with touch id / device pin on simulator?**  
+> The simulator doesn’t posess any secure enclave and therefore trying to access it would just lead to errors. For your leisure we store the private key in keychain instead of the secure enclave on simulator. This makes development faster and easier. The only diff [is a single line of code](https://github.com/agens-no/EllipticCurveKeyPair/blob/70c248e83e8c0aaf73a9c27a1bce4becfe257bba/Sources/EllipticCurveKeyPair.swift#L124-L137).
 
-**Q: Where can I learn more?**  
-A: Check out this video on [WWDC 2015](https://developer.apple.com/videos/play/wwdc2015/706/) about Security in general or [click here](https://developer.apple.com/videos/play/wwdc2015/706/?time=2069) to skip right to the section about the Secure Enclave.
+**Where can I learn more?**  
+> Check out this video on [WWDC 2015](https://developer.apple.com/videos/play/wwdc2015/706/) about Security in general or [click here](https://developer.apple.com/videos/play/wwdc2015/706/?time=2069) to skip right to the section about the Secure Enclave.
 
+**Why is it wrapped in an enum?**
+> I try to balance drag-and-drop the files you need into xcode and supporting dependency managers like carthage and cocoapods at the same time. If you have better ideas or don't agree with this decission I'm happy to discuss alternatives :)
 
 
 ## Feedback
