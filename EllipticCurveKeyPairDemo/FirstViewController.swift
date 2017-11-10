@@ -30,13 +30,14 @@ class FirstViewController: UIViewController {
     
     struct Shared {
         static let keypair: EllipticCurveKeyPair.Manager = {
-            let accessControl = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: [.userPresence, .privateKeyUsage])
+            let publicAccessControl = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAlwaysThisDeviceOnly, flags: [])
+            let privateAccessControl = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: [.touchIDAny, .privateKeyUsage])
             let config = EllipticCurveKeyPair.Config(
                 publicLabel: "no.agens.encrypt.public",
                 privateLabel: "no.agens.encrypt.private",
                 operationPrompt: "Decrypt",
-                publicKeyAccessControl: accessControl,
-                privateKeyAccessControl: accessControl,
+                publicKeyAccessControl: publicAccessControl,
+                privateKeyAccessControl: privateAccessControl,
                 fallbackToKeychainIfSecureEnclaveIsNotAvailable: true)
             return EllipticCurveKeyPair.Manager(config: config)
         }()
