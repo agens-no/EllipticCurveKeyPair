@@ -155,6 +155,15 @@ if case let EllipticCurveKeyPair.Error.underlying(_, underlying) = error, underl
 }
 ```
 
+
+### Debugging
+
+In order to inspect the queries going back and forth to Keychain you may print to console every mutation this library does on Keychain like this
+```swift
+EllipticCurveKeyPair.logger = { print($0) }
+```
+
+
 ## Possbitilites
 
 There are lots of great possibilities with Secure Enclave. Here are some examples
@@ -179,7 +188,6 @@ A use case could be
 1. The signed token is then sent to server
 1. Server already is in posession of the public key and verifies the signature using the public key
 1. Server is now confident that user signed this agreement with touch id
-
 
 
 ## Verifying a signature

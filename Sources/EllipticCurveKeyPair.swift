@@ -29,6 +29,9 @@ import LocalAuthentication
 
 @available(OSX 10.12, iOS 9.0, *)
 public enum EllipticCurveKeyPair {
+    
+    public typealias Logger = (String) -> ()
+    public static var logger: Logger?
         
     public struct Config {
         
@@ -183,6 +186,7 @@ public enum EllipticCurveKeyPair {
         
         private func generateKeyPair(query: [String:Any]) throws -> (`public`: PublicKey, `private`: PrivateKey) {
             var publicOptional, privateOptional: SecKey?
+            logger?("SecKeyGeneratePair: \(query)")
             let status = SecKeyGeneratePair(query as CFDictionary, &publicOptional, &privateOptional)
             guard status == errSecSuccess else {
                 throw Error.osStatus(message: "Could not generate keypair.", osStatus: status)
@@ -330,6 +334,7 @@ public enum EllipticCurveKeyPair {
         
         static func getKey(_ query: [String: Any]) throws -> SecKey {
             var raw: CFTypeRef?
+            logger?("SecItemCopyMatching: \(query)")
             let status = SecItemCopyMatching(query as CFDictionary, &raw)
             guard status == errSecSuccess, let result = raw else {
                 throw Error.osStatus(message: "Could not get key for query: \(query)", osStatus: status)
@@ -416,6 +421,7 @@ public enum EllipticCurveKeyPair {
         
         static func deletePublicKey(labeled: String, accessGroup: String?) throws {
             let query = publicKeyQuery(labeled: labeled, accessGroup: accessGroup) as CFDictionary
+            logger?("SecItemDelete: \(query)")
             let status = SecItemDelete(query as CFDictionary)
             guard status == errSecSuccess || status == errSecItemNotFound else {
                 throw Error.osStatus(message: "Could not delete private key.", osStatus: status)
@@ -424,6 +430,7 @@ public enum EllipticCurveKeyPair {
         
         static func deletePrivateKey(labeled: String, accessGroup: String?) throws {
             let query = privateKeyQuery(labeled: labeled, accessGroup: accessGroup) as CFDictionary
+            logger?("SecItemDelete: \(query)")
             let status = SecItemDelete(query as CFDictionary)
             guard status == errSecSuccess || status == errSecItemNotFound else {
                 throw Error.osStatus(message: "Could not delete private key.", osStatus: status)
@@ -437,9 +444,12 @@ public enum EllipticCurveKeyPair {
                 kSecValueRef as String: publicKey.underlying
             ]
             var raw: CFTypeRef?
+            logger?("SecItemAdd: \(query)")
             var status = SecItemAdd(query as CFDictionary, &raw)
             if status == errSecDuplicateItem {
+                logger?("SecItemDelete: \(query)")
                 status = SecItemDelete(query as CFDictionary)
+                logger?("SecItemAdd: \(query)")
                 status = SecItemAdd(query as CFDictionary, &raw)
             }
             guard status == errSecSuccess else {
@@ -547,7 +557,7 @@ public enum EllipticCurveKeyPair {
                 kSecValueRef as String: underlying,
                 kSecReturnAttributes as String: true
             ]
-            
+            logger?("SecItemCopyMatching: \(query)")
             let status = SecItemCopyMatching(query as CFDictionary, &matchResult)
             guard status == errSecSuccess else {
                 throw Error.osStatus(message: "Could not read attributes for key", osStatus: status)
@@ -580,7 +590,7 @@ public enum EllipticCurveKeyPair {
                 kSecValueRef as String: underlying,
                 kSecReturnData as String: true
             ]
-            
+            logger?("SecItemCopyMatching: \(query)")
             let status = SecItemCopyMatching(query as CFDictionary, &matchResult)
             guard status == errSecSuccess else {
                 throw Error.osStatus(message: "Could not generate keypair", osStatus: status)

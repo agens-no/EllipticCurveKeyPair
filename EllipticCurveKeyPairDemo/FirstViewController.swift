@@ -30,6 +30,7 @@ class FirstViewController: UIViewController {
     
     struct Shared {
         static let keypair: EllipticCurveKeyPair.Manager = {
+            EllipticCurveKeyPair.logger = { print($0) }
             let publicAccessControl = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAlwaysThisDeviceOnly, flags: [])
             let privateAccessControl = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: [.touchIDAny, .privateKeyUsage])
             let config = EllipticCurveKeyPair.Config(
