@@ -26,22 +26,6 @@ import UIKit
 import LocalAuthentication
 import EllipticCurveKeyPair
 
-func delay( _ delay: Double, queue: DispatchQueue = DispatchQueue.main, completion: @escaping () -> () ) {
-    queue.asyncAfter(deadline: DispatchTime.now() + Double(Int64(delay * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC)) { () -> Void in
-        completion()
-    }
-}
-
-extension UIDevice {
-    var isSimulator: Bool {
-        #if arch(i386) || arch(x86_64)
-            return true
-        #else
-            return false
-        #endif
-    }
-}
-
 
 class SecondViewController: UIViewController {
     
