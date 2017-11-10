@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "EllipticCurveKeyPair"
-  s.version      = "1.0"
+  s.version      = "1.0.1"
   s.summary      = "Sign, verify, encrypt and decrypt using the Secure Enclave"
   s.description  = <<-DESC
     Create and manage an Elliptic Curve Key Pair on the Secure Enclave on iOS or MacOS.
