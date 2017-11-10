@@ -7,7 +7,10 @@ Pod::Spec.new do |s|
   DESC
   s.homepage     = "https://github.com/agens-no/EllipticCurveKeyPair"
   s.license      = { :type => "MIT", :file => "LICENSE" }
-  s.author             = { "Håvard Fossli" => "hfossli@gmail.com" }
+  s.author       = {
+    "Håvard Fossli" => "hfossli@gmail.com",
+    "Marcin Krzyżanowski" => "marcin.krzyzanowski@gmail.com"
+  }
   s.ios.deployment_target = "9.0"
   s.osx.deployment_target = "10.12"
   s.source       = { :git => "https://github.com/agens-no/EllipticCurveKeyPair.git", :tag => s.version.to_s }
