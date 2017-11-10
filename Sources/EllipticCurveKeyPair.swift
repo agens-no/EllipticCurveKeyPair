@@ -192,6 +192,7 @@ public enum EllipticCurveKeyPair {
             }
             let publicKey = PublicKey(publicSec)
             let privateKey = PrivateKey(privateSec)
+            try Query.forceSavePublicKey(publicKey, label: config.publicLabel)
             return (public: publicKey, private: privateKey)
         }
         
@@ -384,7 +385,6 @@ public enum EllipticCurveKeyPair {
             // public
             var publicKeyParams: [String: Any] = [
                 kSecAttrLabel as String: config.publicLabel,
-                kSecAttrIsPermanent as String: true,
                 kSecAttrAccessControl as String: try config.publicKeyAccessControl.underlying(),
                 ]
             if let publicKeyAccessGroup = config.publicKeyAccessGroup {
@@ -425,6 +425,23 @@ public enum EllipticCurveKeyPair {
             let status = SecItemDelete(query as CFDictionary)
             guard status == errSecSuccess || status == errSecItemNotFound else {
                 throw Error.osStatus(message: "Could not delete private key.", osStatus: status)
+            }
+        }
+        
+        static func forceSavePublicKey(_ publicKey: PublicKey, label: String) throws {
+            let query: [String: Any] = [
+                kSecClass as String: kSecClassKey,
+                kSecAttrLabel as String: label,
+                kSecValueRef as String: publicKey.underlying
+            ]
+            var raw: CFTypeRef?
+            var status = SecItemAdd(query as CFDictionary, &raw)
+            if status == errSecDuplicateItem {
+                status = SecItemDelete(query as CFDictionary)
+                status = SecItemAdd(query as CFDictionary, &raw)
+            }
+            guard status == errSecSuccess else {
+                throw Error.osStatus(message: "Could not save public key", osStatus: status)
             }
         }
     }
