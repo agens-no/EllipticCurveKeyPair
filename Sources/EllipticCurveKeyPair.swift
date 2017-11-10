@@ -392,13 +392,15 @@ public enum EllipticCurveKeyPair {
             }
             
             // combined
-            let params: [String: Any] = [
+            var params: [String: Any] = [
                 kSecAttrKeyType as String: Constants.attrKeyTypeEllipticCurve,
                 kSecPrivateKeyAttrs as String: privateKeyParams,
                 kSecPublicKeyAttrs as String: publicKeyParams,
                 kSecAttrKeySizeInBits as String: 256,
                 ]
-            
+            if secureEnclave {
+                params[kSecAttrTokenID as String] = kSecAttrTokenIDSecureEnclave
+            }
             return params
         }
         
