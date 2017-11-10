@@ -432,7 +432,7 @@ public enum EllipticCurveKeyPair {
     public struct Constants {
         public static var x9_62Header: Data = Data(bytes: [UInt8]([0x30, 0x59, 0x30, 0x13, 0x06, 0x07, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01, 0x06, 0x08, 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x03, 0x01, 0x07, 0x03, 0x42, 0x00]))
         public static let noCompression: UInt8 = 4
-        public static var attrKeyTypeEllipticCurve: String = {
+        public static let attrKeyTypeEllipticCurve: String = {
             if #available(iOS 10.0, *) {
                 return kSecAttrKeyTypeECSECPrimeRandom as String
             } else {
