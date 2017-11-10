@@ -33,28 +33,28 @@ public enum EllipticCurveKeyPair {
     public struct Config {
         
         // The label used to identify the public key in keychain
-        public let publicLabel: String
+        public var publicLabel: String
         
         // The label used to identify the private key on the secure enclave
-        public let privateLabel: String
+        public var privateLabel: String
         
         // The text presented to the user about why we need his/her fingerprint / device pin
-        public let operationPrompt: String?
+        public var operationPrompt: String?
         
         // The access control used to manage the access to the public key
-        public let publicKeyAccessControl: AccessControl
+        public var publicKeyAccessControl: AccessControl
         
         // The access control used to manage the access to the private key
-        public let privateKeyAccessControl: AccessControl
+        public var privateKeyAccessControl: AccessControl
         
-        public let publicKeyAccessGroup: String?
+        public var publicKeyAccessGroup: String?
         
-        public let privateKeyAccessGroup: String?
+        public var privateKeyAccessGroup: String?
         
         // iOS Simulator doesn't have any Secure Enclave.
         // Thus if you would like your app to be able to run on simulator it may be useful to
         // set this to true – allowing you to decrypt and sign without the Secure Enclave.
-        public let fallbackToKeychainIfSecureEnclaveIsNotAvailable: Bool
+        public var fallbackToKeychainIfSecureEnclaveIsNotAvailable: Bool
         
         public init(publicLabel: String,
                     privateLabel: String,
