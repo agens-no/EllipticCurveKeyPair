@@ -50,8 +50,12 @@ public enum EllipticCurveKeyPair {
         // The access control used to manage the access to the private key
         public var privateKeyAccessControl: AccessControl
         
+        // The access group e.g. "BBDV3R8HVV.no.agens.demo"
+        // Useful for shared keychain items
         public var publicKeyAccessGroup: String?
         
+        // The access group e.g. "BBDV3R8HVV.no.agens.demo"
+        // Useful for shared keychain items
         public var privateKeyAccessGroup: String?
         
         // iOS Simulator doesn't have any Secure Enclave.
