@@ -18,8 +18,8 @@
 		A35A3FE61FB9CBE80093C12B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A35A3FE51FB9CBE80093C12B /* Assets.xcassets */; };
 		A35A3FE91FB9CBE80093C12B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A35A3FE71FB9CBE80093C12B /* Main.storyboard */; };
 		A35A3FF61FB9CC1B0093C12B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35A3FF51FB9CC1B0093C12B /* AppDelegate.swift */; };
-		A35A3FF81FB9CC1B0093C12B /* FirstViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35A3FF71FB9CC1B0093C12B /* FirstViewController.swift */; };
-		A35A3FFA1FB9CC1B0093C12B /* SecondViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35A3FF91FB9CC1B0093C12B /* SecondViewController.swift */; };
+		A35A3FF81FB9CC1B0093C12B /* EncryptionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35A3FF71FB9CC1B0093C12B /* EncryptionViewController.swift */; };
+		A35A3FFA1FB9CC1B0093C12B /* SignatureViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35A3FF91FB9CC1B0093C12B /* SignatureViewController.swift */; };
 		A35A3FFD1FB9CC1B0093C12B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A35A3FFB1FB9CC1B0093C12B /* Main.storyboard */; };
 		A35A3FFF1FB9CC1B0093C12B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A35A3FFE1FB9CC1B0093C12B /* Assets.xcassets */; };
 		A35A40021FB9CC1B0093C12B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A35A40001FB9CC1B0093C12B /* LaunchScreen.storyboard */; };
@@ -106,8 +106,8 @@
 		A35A3FEB1FB9CBE80093C12B /* Demo_macOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Demo_macOS.entitlements; sourceTree = "<group>"; };
 		A35A3FF31FB9CC1A0093C12B /* Demo-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Demo-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A35A3FF51FB9CC1B0093C12B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		A35A3FF71FB9CC1B0093C12B /* FirstViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstViewController.swift; sourceTree = "<group>"; };
-		A35A3FF91FB9CC1B0093C12B /* SecondViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondViewController.swift; sourceTree = "<group>"; };
+		A35A3FF71FB9CC1B0093C12B /* EncryptionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncryptionViewController.swift; sourceTree = "<group>"; };
+		A35A3FF91FB9CC1B0093C12B /* SignatureViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignatureViewController.swift; sourceTree = "<group>"; };
 		A35A3FFC1FB9CC1B0093C12B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		A35A3FFE1FB9CC1B0093C12B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A35A40011FB9CC1B0093C12B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -241,8 +241,8 @@
 			isa = PBXGroup;
 			children = (
 				A35A3FF51FB9CC1B0093C12B /* AppDelegate.swift */,
-				A35A3FF71FB9CC1B0093C12B /* FirstViewController.swift */,
-				A35A3FF91FB9CC1B0093C12B /* SecondViewController.swift */,
+				A35A3FF71FB9CC1B0093C12B /* EncryptionViewController.swift */,
+				A35A3FF91FB9CC1B0093C12B /* SignatureViewController.swift */,
 				A35A3FFB1FB9CC1B0093C12B /* Main.storyboard */,
 				A35A3FFE1FB9CC1B0093C12B /* Assets.xcassets */,
 				A35A40001FB9CC1B0093C12B /* LaunchScreen.storyboard */,
@@ -425,6 +425,11 @@
 						CreatedOnToolsVersion = 9.1;
 						DevelopmentTeam = 33KVL2LY9J;
 						ProvisioningStyle = Automatic;
+						SystemCapabilities = {
+							com.apple.Keychain = {
+								enabled = 1;
+							};
+						};
 					};
 					A35A3FF21FB9CC1A0093C12B = {
 						CreatedOnToolsVersion = 9.1;
@@ -552,9 +557,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A35A3FFA1FB9CC1B0093C12B /* SecondViewController.swift in Sources */,
+				A35A3FFA1FB9CC1B0093C12B /* SignatureViewController.swift in Sources */,
 				A35A3FF61FB9CC1B0093C12B /* AppDelegate.swift in Sources */,
-				A35A3FF81FB9CC1B0093C12B /* FirstViewController.swift in Sources */,
+				A35A3FF81FB9CC1B0093C12B /* EncryptionViewController.swift in Sources */,
 				A35A40121FB9CC8D0093C12B /* Utils.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -864,7 +869,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = "Demo-macOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MACOSX_DEPLOYMENT_TARGET = 10.12.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "no.agens.Demo-macOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -897,7 +902,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = "Demo-macOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MACOSX_DEPLOYMENT_TARGET = 10.12.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "no.agens.Demo-macOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;

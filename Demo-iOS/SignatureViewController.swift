@@ -27,7 +27,7 @@ import LocalAuthentication
 import EllipticCurveKeyPair
 
 
-class SecondViewController: UIViewController {
+class SignatureViewController: UIViewController {
     
     struct Shared {
         static let keypair: EllipticCurveKeyPair.Manager = {
