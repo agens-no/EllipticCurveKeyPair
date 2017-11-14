@@ -381,9 +381,6 @@ public enum EllipticCurveKeyPair {
                 kSecAttrAccessControl as String: try config.privateKeyAccessControl.underlying(),
                 kSecUseAuthenticationUI as String: kSecUseAuthenticationUIAllow,
                 ]
-            if secureEnclave {
-                privateKeyParams[kSecAttrTokenID as String] = kSecAttrTokenIDSecureEnclave
-            }
             if let operationPrompt = config.operationPrompt {
                 privateKeyParams[kSecUseOperationPrompt as String] = operationPrompt
             }
