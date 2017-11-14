@@ -24,11 +24,11 @@
 
 import Foundation
 import EllipticCurveKeyPair
-import UIKit
 
 extension String: Error {}
 
-func verifyAndLog(manager: EllipticCurveKeyPair.Manager, signed: Data, digest: Data, algorithm: SecKeyAlgorithm) throws {
+@available(iOS 10, *)
+func verifyAndLog(manager: EllipticCurveKeyPair.Manager, signed: Data, digest: Data, algorithm: EllipticCurveKeyPair.Algorithm) throws {
     do {
         let verified = try manager.verify(signature: signed, originalDigest: digest, algorithm: algorithm)
         guard verified == true else {
@@ -87,16 +87,7 @@ func delay( _ delay: Double, queue: DispatchQueue = DispatchQueue.main, completi
     }
 }
 
-extension UIDevice {
-    var isSimulator: Bool {
-        #if arch(i386) || arch(x86_64)
-            return true
-        #else
-            return false
-        #endif
-    }
-}
-
+@available(iOS 10, *)
 func supportedAlgorithms(key: SecKey) -> [SecKeyAlgorithm] {
     var supports = [SecKeyAlgorithm]()
     for algorithm in allAlgorithms() {
@@ -110,6 +101,7 @@ func supportedAlgorithms(key: SecKey) -> [SecKeyAlgorithm] {
     return supports
 }
 
+@available(iOS 10, *)
 func allAlgorithms() -> [SecKeyAlgorithm] {
     return [.rsaSignatureRaw,
             .rsaSignatureDigestPKCS1v15Raw,

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "0900"
+   LastUpgradeVersion = "0910"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "A381D7B61F98A6BB0069D88C"
-               BuildableName = "EllipticCurveKeyPairDemo.app"
-               BlueprintName = "EllipticCurveKeyPairDemo"
+               BlueprintIdentifier = "A35A3FDE1FB9CBE70093C12B"
+               BuildableName = "Demo-macOS.app"
+               BlueprintName = "Demo-macOS"
                ReferencedContainer = "container:EllipticCurveKeyPair.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -33,9 +33,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "A381D7B61F98A6BB0069D88C"
-            BuildableName = "EllipticCurveKeyPairDemo.app"
-            BlueprintName = "EllipticCurveKeyPairDemo"
+            BlueprintIdentifier = "A35A3FDE1FB9CBE70093C12B"
+            BuildableName = "Demo-macOS.app"
+            BlueprintName = "Demo-macOS"
             ReferencedContainer = "container:EllipticCurveKeyPair.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -57,9 +57,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "A381D7B61F98A6BB0069D88C"
-            BuildableName = "EllipticCurveKeyPairDemo.app"
-            BlueprintName = "EllipticCurveKeyPairDemo"
+            BlueprintIdentifier = "A35A3FDE1FB9CBE70093C12B"
+            BuildableName = "Demo-macOS.app"
+            BlueprintName = "Demo-macOS"
             ReferencedContainer = "container:EllipticCurveKeyPair.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -76,9 +76,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "A381D7B61F98A6BB0069D88C"
-            BuildableName = "EllipticCurveKeyPairDemo.app"
-            BlueprintName = "EllipticCurveKeyPairDemo"
+            BlueprintIdentifier = "A35A3FDE1FB9CBE70093C12B"
+            BuildableName = "Demo-macOS.app"
+            BlueprintName = "Demo-macOS"
             ReferencedContainer = "container:EllipticCurveKeyPair.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
