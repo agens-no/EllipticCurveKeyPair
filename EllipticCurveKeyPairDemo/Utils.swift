@@ -28,9 +28,9 @@ import UIKit
 
 extension String: Error {}
 
-func verifyAndLog(manager: EllipticCurveKeyPair.Manager, signed: Data, digest: Data) {
+func verifyAndLog(manager: EllipticCurveKeyPair.Manager, signed: Data, digest: Data, algorithm: SecKeyAlgorithm) throws {
     do {
-        let verified = try manager.verify(signature: signed, originalDigest: digest)
+        let verified = try manager.verify(signature: signed, originalDigest: digest, algorithm: algorithm)
         guard verified == true else {
             fatalError("Could not verify signature. Probably invalid keypair.")
         }
@@ -47,7 +47,7 @@ func verifyAndLog(manager: EllipticCurveKeyPair.Manager, signed: Data, digest: D
     shell.append("echo \(digest.map { String(format: "%02hhx", $0) }.joined()) | xxd -r -p > dataToSign.dat")
     shell.append("echo \(signed.map { String(format: "%02hhx", $0) }.joined()) | xxd -r -p > signature.dat")
     shell.append("cat > key.pem <<EOF\n-----BEGIN PUBLIC KEY-----\n\(publicKeyBase)\n-----END PUBLIC KEY-----\nEOF")
-    shell.append("/usr/local/opt/openssl/bin/openssl dgst -sha256 -verify key.pem -signature signature.dat dataToSign.dat")
+    shell.append("/usr/local/opt/openssl/bin/openssl dgst -\(algorithm.rawValue) -verify key.pem -signature signature.dat dataToSign.dat")
     print(shell.joined(separator: "\n"))
 }
 
@@ -97,4 +97,77 @@ extension UIDevice {
     }
 }
 
-let allAlgorithms = [SecKeyAlgorithm.rsaSignatureRaw, SecKeyAlgorithm.rsaSignatureDigestPKCS1v15Raw, SecKeyAlgorithm.rsaSignatureDigestPKCS1v15SHA1, SecKeyAlgorithm.rsaSignatureDigestPKCS1v15SHA224, SecKeyAlgorithm.rsaSignatureDigestPKCS1v15SHA256, SecKeyAlgorithm.rsaSignatureDigestPKCS1v15SHA384, SecKeyAlgorithm.rsaSignatureDigestPKCS1v15SHA512, SecKeyAlgorithm.rsaSignatureMessagePKCS1v15SHA1, SecKeyAlgorithm.rsaSignatureMessagePKCS1v15SHA224, SecKeyAlgorithm.rsaSignatureMessagePKCS1v15SHA256, SecKeyAlgorithm.rsaSignatureMessagePKCS1v15SHA384, SecKeyAlgorithm.rsaSignatureMessagePKCS1v15SHA512, SecKeyAlgorithm.ecdsaSignatureRFC4754, SecKeyAlgorithm.ecdsaSignatureDigestX962, SecKeyAlgorithm.ecdsaSignatureDigestX962SHA1, SecKeyAlgorithm.ecdsaSignatureDigestX962SHA224, SecKeyAlgorithm.ecdsaSignatureDigestX962SHA256, SecKeyAlgorithm.ecdsaSignatureDigestX962SHA384, SecKeyAlgorithm.ecdsaSignatureDigestX962SHA512, SecKeyAlgorithm.ecdsaSignatureMessageX962SHA1, SecKeyAlgorithm.ecdsaSignatureMessageX962SHA224, SecKeyAlgorithm.ecdsaSignatureMessageX962SHA256, SecKeyAlgorithm.ecdsaSignatureMessageX962SHA384, SecKeyAlgorithm.ecdsaSignatureMessageX962SHA512, SecKeyAlgorithm.rsaEncryptionRaw, SecKeyAlgorithm.rsaEncryptionPKCS1, SecKeyAlgorithm.rsaEncryptionOAEPSHA1, SecKeyAlgorithm.rsaEncryptionOAEPSHA224, SecKeyAlgorithm.rsaEncryptionOAEPSHA256, SecKeyAlgorithm.rsaEncryptionOAEPSHA384, SecKeyAlgorithm.rsaEncryptionOAEPSHA512, SecKeyAlgorithm.rsaEncryptionOAEPSHA1AESGCM, SecKeyAlgorithm.rsaEncryptionOAEPSHA224AESGCM, SecKeyAlgorithm.rsaEncryptionOAEPSHA256AESGCM, SecKeyAlgorithm.rsaEncryptionOAEPSHA384AESGCM, SecKeyAlgorithm.rsaEncryptionOAEPSHA512AESGCM, SecKeyAlgorithm.eciesEncryptionStandardX963SHA1AESGCM, SecKeyAlgorithm.eciesEncryptionStandardX963SHA224AESGCM, SecKeyAlgorithm.eciesEncryptionStandardX963SHA256AESGCM, SecKeyAlgorithm.eciesEncryptionStandardX963SHA384AESGCM, SecKeyAlgorithm.eciesEncryptionStandardX963SHA512AESGCM, SecKeyAlgorithm.eciesEncryptionCofactorX963SHA1AESGCM, SecKeyAlgorithm.eciesEncryptionCofactorX963SHA224AESGCM, SecKeyAlgorithm.eciesEncryptionCofactorX963SHA256AESGCM, SecKeyAlgorithm.eciesEncryptionCofactorX963SHA384AESGCM, SecKeyAlgorithm.eciesEncryptionCofactorX963SHA512AESGCM, SecKeyAlgorithm.ecdhKeyExchangeStandard, SecKeyAlgorithm.ecdhKeyExchangeStandardX963SHA1, SecKeyAlgorithm.ecdhKeyExchangeStandardX963SHA224, SecKeyAlgorithm.ecdhKeyExchangeStandardX963SHA256, SecKeyAlgorithm.ecdhKeyExchangeStandardX963SHA384, SecKeyAlgorithm.ecdhKeyExchangeStandardX963SHA512, SecKeyAlgorithm.ecdhKeyExchangeCofactor, SecKeyAlgorithm.ecdhKeyExchangeCofactorX963SHA1, SecKeyAlgorithm.ecdhKeyExchangeCofactorX963SHA224, SecKeyAlgorithm.ecdhKeyExchangeCofactorX963SHA256, SecKeyAlgorithm.ecdhKeyExchangeCofactorX963SHA384, SecKeyAlgorithm.ecdhKeyExchangeCofactorX963SHA512]
+func supportedAlgorithms(key: SecKey) -> [SecKeyAlgorithm] {
+    var supports = [SecKeyAlgorithm]()
+    for algorithm in allAlgorithms() {
+        for i in 0...4 {
+            let operationType = SecKeyOperationType(rawValue: i)!
+            if SecKeyIsAlgorithmSupported(key, operationType, algorithm) {
+                supports.append(algorithm)
+            }
+        }
+    }
+    return supports
+}
+
+func allAlgorithms() -> [SecKeyAlgorithm] {
+    return [.rsaSignatureRaw,
+            .rsaSignatureDigestPKCS1v15Raw,
+            .rsaSignatureDigestPKCS1v15SHA1,
+            .rsaSignatureDigestPKCS1v15SHA224,
+            .rsaSignatureDigestPKCS1v15SHA256,
+            .rsaSignatureDigestPKCS1v15SHA384,
+            .rsaSignatureDigestPKCS1v15SHA512,
+            .rsaSignatureMessagePKCS1v15SHA1,
+            .rsaSignatureMessagePKCS1v15SHA224,
+            .rsaSignatureMessagePKCS1v15SHA256,
+            .rsaSignatureMessagePKCS1v15SHA384,
+            .rsaSignatureMessagePKCS1v15SHA512,
+            .ecdsaSignatureRFC4754,
+            .ecdsaSignatureDigestX962,
+            .ecdsaSignatureDigestX962SHA1,
+            .ecdsaSignatureDigestX962SHA224,
+            .ecdsaSignatureDigestX962SHA256,
+            .ecdsaSignatureDigestX962SHA384,
+            .ecdsaSignatureDigestX962SHA512,
+            .ecdsaSignatureMessageX962SHA1,
+            .ecdsaSignatureMessageX962SHA224,
+            .ecdsaSignatureMessageX962SHA256,
+            .ecdsaSignatureMessageX962SHA384,
+            .ecdsaSignatureMessageX962SHA512,
+            .rsaEncryptionRaw,
+            .rsaEncryptionPKCS1,
+            .rsaEncryptionOAEPSHA1,
+            .rsaEncryptionOAEPSHA224,
+            .rsaEncryptionOAEPSHA256,
+            .rsaEncryptionOAEPSHA384,
+            .rsaEncryptionOAEPSHA512,
+            .rsaEncryptionOAEPSHA1AESGCM,
+            .rsaEncryptionOAEPSHA224AESGCM,
+            .rsaEncryptionOAEPSHA256AESGCM,
+            .rsaEncryptionOAEPSHA384AESGCM,
+            .rsaEncryptionOAEPSHA512AESGCM,
+            .eciesEncryptionStandardX963SHA1AESGCM,
+            .eciesEncryptionStandardX963SHA224AESGCM,
+            .eciesEncryptionStandardX963SHA256AESGCM,
+            .eciesEncryptionStandardX963SHA384AESGCM,
+            .eciesEncryptionStandardX963SHA512AESGCM,
+            .eciesEncryptionCofactorX963SHA1AESGCM,
+            .eciesEncryptionCofactorX963SHA224AESGCM,
+            .eciesEncryptionCofactorX963SHA256AESGCM,
+            .eciesEncryptionCofactorX963SHA384AESGCM,
+            .eciesEncryptionCofactorX963SHA512AESGCM,
+            .ecdhKeyExchangeStandard,
+            .ecdhKeyExchangeStandardX963SHA1,
+            .ecdhKeyExchangeStandardX963SHA224,
+            .ecdhKeyExchangeStandardX963SHA256,
+            .ecdhKeyExchangeStandardX963SHA384,
+            .ecdhKeyExchangeStandardX963SHA512,
+            .ecdhKeyExchangeCofactor,
+            .ecdhKeyExchangeCofactorX963SHA1,
+            .ecdhKeyExchangeCofactorX963SHA224,
+            .ecdhKeyExchangeCofactorX963SHA256,
+            .ecdhKeyExchangeCofactorX963SHA384,
+            .ecdhKeyExchangeCofactorX963SHA512]
+}
+
