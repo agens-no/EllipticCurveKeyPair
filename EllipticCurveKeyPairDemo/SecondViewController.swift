@@ -94,9 +94,10 @@ class SecondViewController: UIViewController {
             }
             return digest
         }, thenAsync: { digest in
-            return try Shared.keypair.sign(digest, authenticationContext: self.context)
-        }, thenOnMain: { signature in
-            self.signatureTextView.text = signature.base64EncodedString()
+            return (digest: digest, signature: try Shared.keypair.sign(digest, algorithm: .sha256, authenticationContext: self.context))
+        }, thenOnMain: { tuple in
+            self.signatureTextView.text = tuple.signature.base64EncodedString()
+            try verifyAndLog(manager: Shared.keypair, signed: tuple.signature, digest: tuple.digest, algorithm: .sha256)
         }, catchToMain: { error in
             self.signatureTextView.text = "Error: \(error)"
         })
