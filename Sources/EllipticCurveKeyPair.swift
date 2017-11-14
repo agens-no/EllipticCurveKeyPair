@@ -143,7 +143,7 @@ public enum EllipticCurveKeyPair {
                 return keyPair
             } catch {
                 if case let Error.underlying(message: _, error: underlying) = error,
-                    underlying.code == errSecUnimplemented,
+                    underlying.code == errSecUnimplemented || underlying.code == errSecAuthFailed,
                     config.fallbackToKeychainIfSecureEnclaveIsNotAvailable {
                     let keyPair = try helper.generateAndStoreInKeyChain()
                     cache = keyPair
