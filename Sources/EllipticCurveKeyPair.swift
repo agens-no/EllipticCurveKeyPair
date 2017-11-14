@@ -699,7 +699,8 @@ public enum EllipticCurveKeyPair {
         
     }
     
-    public enum Algorithm {
+    @available(iOS 10.0, *)
+    public enum Algorithm: String {
         case sha1
         case sha224
         case sha384
