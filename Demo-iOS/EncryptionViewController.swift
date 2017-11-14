@@ -26,7 +26,7 @@ import UIKit
 import LocalAuthentication
 import EllipticCurveKeyPair
 
-class FirstViewController: UIViewController {
+class EncryptionViewController: UIViewController {
     
     struct Shared {
         static let keypair: EllipticCurveKeyPair.Manager = {
@@ -76,7 +76,7 @@ class FirstViewController: UIViewController {
                     encryptDecryptButton.isHidden = false
                     resetButton.isHidden = true
                 case let .error(error):
-                    encryptDecryptTextView.text = error.localizedDescription
+                    encryptDecryptTextView.text = "Error: \(error)"
                     encryptDecryptTitleLabel.text = "Error"
                     encryptDecryptButton.isHidden = true
                     resetButton.isHidden = false
