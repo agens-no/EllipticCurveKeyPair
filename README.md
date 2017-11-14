@@ -127,7 +127,7 @@ do {
 ```
 See demo app for working example
 
-### Error handling
+## Error handling
 
 The most common thing is to catch error related to
 - Secure Enclave not being available
@@ -159,7 +159,7 @@ if case let EllipticCurveKeyPair.Error.underlying(_, underlying) = error, underl
 ```
 
 
-### Debugging
+## Debugging
 
 In order to inspect the queries going back and forth to Keychain you may print to console every mutation this library does on Keychain like this
 ```swift
