@@ -132,13 +132,13 @@ public enum EllipticCurveKeyPair {
         }
         
         @available(iOS 10.3, *) // API available at 10.0, but bugs made it unusable on versions lower than 10.3
-        public func encrypt(_ digest: Data) throws -> Data {
-            return try helper.encrypt(digest, publicKey: getKeys().public)
+        public func encrypt(_ digest: Data, algorithm: Algorithm = .sha256) throws -> Data {
+            return try helper.encrypt(digest, publicKey: getKeys().public, algorithm: algorithm)
         }
         
         @available(iOS 10.3, *) // API available at 10.0, but bugs made it unusable on versions lower than 10.3
-        public func decrypt(_ encrypted: Data, authenticationContext: LAContext? = nil) throws -> Data {
-            return try helper.decrypt(encrypted, privateKey: getKeys().private.accessibleWithAuthenticationContext(authenticationContext))
+        public func decrypt(_ encrypted: Data, algorithm: Algorithm = .sha256, authenticationContext: LAContext? = nil) throws -> Data {
+            return try helper.decrypt(encrypted, privateKey: getKeys().private.accessibleWithAuthenticationContext(authenticationContext), algorithm: algorithm)
         }
         
         public func getKeys() throws -> (`public`: PublicKey, `private`: PrivateKey) {
