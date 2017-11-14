@@ -112,12 +112,23 @@ public enum EllipticCurveKeyPair {
             return try getKeys().private
         }
         
+        public func sign(_ digest: Data, authenticationContext: LAContext? = nil) throws -> Data {
+            return try helper.sign(digest, privateKey: getKeys().private.accessibleWithAuthenticationContext(authenticationContext))
+        }
+        
+        @available(iOS 10, *)
+        public func sign(_ digest: Data, algorithm: Algorithm, authenticationContext: LAContext? = nil) throws -> Data {
+            let privateKey = try getKeys().private.accessibleWithAuthenticationContext(authenticationContext)
+            return try helper.sign(digest, privateKey: privateKey, algorithm: algorithm)
+        }
+        
         public func verify(signature: Data, originalDigest: Data) throws -> Bool {
             return try helper.verify(signature: signature, digest: originalDigest, publicKey: getKeys().public)
         }
         
-        public func sign(_ digest: Data, authenticationContext: LAContext? = nil) throws -> Data {
-            return try helper.sign(digest, privateKey: getKeys().private.accessibleWithAuthenticationContext(authenticationContext))
+        @available(iOS 10, *)
+        public func verify(signature: Data, originalDigest: Data, algorithm: Algorithm) throws -> Bool {
+            return try helper.verify(signature: signature, digest: originalDigest, publicKey: getKeys().public, algorithm: algorithm)
         }
         
         @available(iOS 10.3, *) // API available at 10.0, but bugs made it unusable on versions lower than 10.3
@@ -214,7 +225,7 @@ public enum EllipticCurveKeyPair {
                 return try signUsingNewApi(digest, privateKey: privateKey)
             #elseif os(iOS)
                 if #available(iOS 10, *) {
-                    return try signUsingNewApi(digest, privateKey: privateKey)
+                    return try sign(digest, privateKey: privateKey, algorithm: .sha256)
                 } else {
                     return try signUsingOldApi(digest, privateKey: privateKey)
                 }
@@ -222,11 +233,10 @@ public enum EllipticCurveKeyPair {
         }
         
         @available(iOS 10.0, *)
-        private func signUsingNewApi(_ digest: Data, privateKey: PrivateKey) throws -> Data {
+        public func sign(_ digest: Data, privateKey: PrivateKey, algorithm: Algorithm) throws -> Data {
             Helper.logToConsoleIfExecutingOnMainThread()
-            let digestToSign = digest.sha256()
             var error : Unmanaged<CFError>?
-            let result = SecKeyCreateSignature(privateKey.underlying, .ecdsaSignatureDigestX962SHA256, digestToSign as CFData, &error)
+            let result = SecKeyCreateSignature(privateKey.underlying, algorithm.signatureMessage, digest as CFData, &error)
             guard let signature = result else {
                 throw Error.fromError(error?.takeRetainedValue(), message: "Could not create signature.")
             }
@@ -262,7 +272,7 @@ public enum EllipticCurveKeyPair {
                 return try verifyUsingNewApi(signature:signature, digest: digest, publicKey: publicKey)
             #elseif os(iOS)
                 if #available(iOS 10, *) {
-                    return try verifyUsingNewApi(signature:signature, digest: digest, publicKey: publicKey)
+                    return try verify(signature:signature, digest: digest, publicKey: publicKey, algorithm: .sha256)
                 } else {
                     return try verifyUsingOldApi(signature:signature, digest: digest, publicKey: publicKey)
                 }
@@ -270,10 +280,9 @@ public enum EllipticCurveKeyPair {
         }
         
         @available(iOS 10.0, *)
-        private func verifyUsingNewApi(signature: Data, digest: Data, publicKey: PublicKey) throws -> Bool {
-            let sha = digest.sha256()
+        public func verify(signature: Data, digest: Data, publicKey: PublicKey, algorithm: Algorithm) throws -> Bool {
             var error : Unmanaged<CFError>?
-            let valid = SecKeyVerifySignature(publicKey.underlying, .ecdsaSignatureDigestX962SHA256, sha as CFData, signature as CFData, &error)
+            let valid = SecKeyVerifySignature(publicKey.underlying, algorithm.signatureMessage, digest as CFData, signature as CFData, &error)
             if let error = error?.takeRetainedValue() {
                 throw Error.fromError(error, message: "Could not create signature.")
             }
@@ -301,9 +310,9 @@ public enum EllipticCurveKeyPair {
         }
         
         @available(iOS 10.3, *)
-        public func encrypt(_ digest: Data, publicKey: PublicKey) throws -> Data {
+        public func encrypt(_ digest: Data, publicKey: PublicKey, algorithm: Algorithm = .sha256) throws -> Data {
             var error : Unmanaged<CFError>?
-            let result = SecKeyCreateEncryptedData(publicKey.underlying, SecKeyAlgorithm.eciesEncryptionStandardX963SHA256AESGCM, digest as CFData, &error)
+            let result = SecKeyCreateEncryptedData(publicKey.underlying, algorithm.encryptionEciesEcdh, digest as CFData, &error)
             guard let data = result else {
                 throw Error.fromError(error?.takeRetainedValue(), message: "Could not encrypt.")
             }
@@ -311,10 +320,10 @@ public enum EllipticCurveKeyPair {
         }
         
         @available(iOS 10.3, *)
-        public func decrypt(_ encrypted: Data, privateKey: PrivateKey) throws -> Data {
+        public func decrypt(_ encrypted: Data, privateKey: PrivateKey, algorithm: Algorithm = .sha256) throws -> Data {
             Helper.logToConsoleIfExecutingOnMainThread()
             var error : Unmanaged<CFError>?
-            let result = SecKeyCreateDecryptedData(privateKey.underlying, SecKeyAlgorithm.eciesEncryptionStandardX963SHA256AESGCM, encrypted as CFData, &error)
+            let result = SecKeyCreateDecryptedData(privateKey.underlying, algorithm.encryptionEciesEcdh, encrypted as CFData, &error)
             guard let data = result else {
                 throw Error.fromError(error?.takeRetainedValue(), message: "Could not decrypt.")
             }
@@ -680,7 +689,7 @@ public enum EllipticCurveKeyPair {
                 let code = Int(CFErrorGetCode(error))
                 var userInfo = (CFErrorCopyUserInfo(error) as? [String:Any]) ?? [String:Any]()
                 if userInfo[NSLocalizedRecoverySuggestionErrorKey] == nil {
-                    userInfo[NSLocalizedRecoverySuggestionErrorKey] = "See https://www.osstatus.com/search/results?platform=all&framework=all&search=\(osStatus)"
+                    userInfo[NSLocalizedRecoverySuggestionErrorKey] = "See https://www.osstatus.com/search/results?platform=all&framework=all&search=\(code)"
                 }
                 let underlying = NSError(domain: domain, code: code, userInfo: userInfo)
                 return .underlying(message: message, error: underlying)
@@ -688,5 +697,43 @@ public enum EllipticCurveKeyPair {
             return .inconcistency(message: "\(message) Unknown error occured.")
         }
         
+    }
+    
+    public enum Algorithm {
+        case sha1
+        case sha224
+        case sha384
+        case sha256
+        case sha512
+        
+        var signatureMessage: SecKeyAlgorithm {
+            switch self {
+            case .sha1:
+                return SecKeyAlgorithm.ecdsaSignatureMessageX962SHA1
+            case .sha224:
+                return SecKeyAlgorithm.ecdsaSignatureMessageX962SHA224
+            case .sha256:
+                return SecKeyAlgorithm.ecdsaSignatureMessageX962SHA256
+            case .sha384:
+                return SecKeyAlgorithm.ecdsaSignatureMessageX962SHA384
+            case .sha512:
+                return SecKeyAlgorithm.ecdsaSignatureMessageX962SHA512
+            }
+        }
+        
+        var encryptionEciesEcdh: SecKeyAlgorithm {
+            switch self {
+            case .sha1:
+                return SecKeyAlgorithm.eciesEncryptionStandardX963SHA1AESGCM
+            case .sha224:
+                return SecKeyAlgorithm.eciesEncryptionStandardX963SHA224AESGCM
+            case .sha256:
+                return SecKeyAlgorithm.eciesEncryptionStandardX963SHA384AESGCM
+            case .sha384:
+                return SecKeyAlgorithm.eciesEncryptionStandardX963SHA256AESGCM
+            case .sha512:
+                return SecKeyAlgorithm.eciesEncryptionStandardX963SHA512AESGCM
+            }
+        }
     }
 }
