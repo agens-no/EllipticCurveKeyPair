@@ -77,9 +77,10 @@ class SignatureViewController: NSViewController {
             }
             return digest
         }, thenAsync: { digest in
-            return (digest: digest, signature: try Shared.keypair.sign(digest, authenticationContext: self.context))
-        }, thenOnMain: { tuple in
-            verifyAndLog(manager: Shared.keypair, signed: tuple.signature, digest: tuple.digest)
+            return try Shared.keypair.sign(digest, algorithm: .sha256, authenticationContext: self.context)
+        }, thenOnMain: { digest, signature in
+            try verifyAndLog(manager: Shared.keypair, signed: signature, digest: digest, algorithm: .sha256)
+            self.signatureTextView.string = signature.base64EncodedString()
         }, catchToMain: { error in
             self.signatureTextView.string = "Error: \(error)"
         })

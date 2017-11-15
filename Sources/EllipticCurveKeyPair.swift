@@ -222,7 +222,7 @@ public enum EllipticCurveKeyPair {
         
         public func sign(_ digest: Data, privateKey: PrivateKey) throws -> Data {
             #if os(OSX)
-                return try signUsingNewApi(digest, privateKey: privateKey)
+                return try sign(digest, privateKey: privateKey, algorithm: .sha256)
             #elseif os(iOS)
                 if #available(iOS 10, *) {
                     return try sign(digest, privateKey: privateKey, algorithm: .sha256)
@@ -269,7 +269,7 @@ public enum EllipticCurveKeyPair {
         
         public func verify(signature: Data, digest: Data, publicKey: PublicKey) throws -> Bool {
             #if os(OSX)
-                return try verifyUsingNewApi(signature:signature, digest: digest, publicKey: publicKey)
+                return try verify(signature:signature, digest: digest, publicKey: publicKey, algorithm: .sha256)
             #elseif os(iOS)
                 if #available(iOS 10, *) {
                     return try verify(signature:signature, digest: digest, publicKey: publicKey, algorithm: .sha256)

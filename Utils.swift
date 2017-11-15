@@ -55,7 +55,7 @@ extension DispatchQueue {
     
     static func roundTrip<T, Y>(_ block: () throws -> T,
                                        thenAsync: @escaping (T) throws -> Y,
-                                       thenOnMain: @escaping (Y) throws -> Void,
+                                       thenOnMain: @escaping (T, Y) throws -> Void,
                                        catchToMain: @escaping (Error) -> Void) {
         do {
             let resultFromMain = try block()
@@ -64,7 +64,7 @@ extension DispatchQueue {
                     let resultFromBackground = try thenAsync(resultFromMain)
                     DispatchQueue.main.async {
                         do {
-                            try thenOnMain(resultFromBackground)
+                            try thenOnMain(resultFromMain, resultFromBackground)
                         } catch {
                             catchToMain(error)
                         }

@@ -679,7 +679,7 @@
                 <customObject id="YLy-65-1bz" customClass="NSFontManager"/>
                 <customObject id="Ady-hI-5gd" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="67" y="281"/>
+            <point key="canvasLocation" x="-1509" y="-674"/>
         </scene>
         <!--Tab View Controller-->
         <scene sceneID="eQE-Q6-f0i">
@@ -706,7 +706,7 @@
                 </tabViewController>
                 <customObject id="nUe-i2-Boq" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-176" y="1594"/>
+            <point key="canvasLocation" x="-1528" y="-324"/>
         </scene>
         <!--Signature-->
         <scene sceneID="zzO-Up-SI7">
@@ -891,7 +891,7 @@
                 </viewController>
                 <customObject id="Jwf-Pc-Iwn" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="494" y="1619"/>
+            <point key="canvasLocation" x="-966" y="-324"/>
         </scene>
         <!--Encryption-->
         <scene sceneID="dkt-GZ-z5f">
@@ -1034,7 +1034,7 @@
                 </viewController>
                 <customObject id="vC4-XE-v7s" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="494" y="2478.5"/>
+            <point key="canvasLocation" x="-1528" y="402"/>
         </scene>
     </scenes>
 </document>
