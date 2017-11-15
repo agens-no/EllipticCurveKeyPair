@@ -112,23 +112,35 @@ public enum EllipticCurveKeyPair {
             return try getKeys().private
         }
         
-        public func sign(_ digest: Data, authenticationContext: LAContext? = nil) throws -> Data {
-            return try helper.sign(digest, privateKey: getKeys().private.accessibleWithAuthenticationContext(authenticationContext))
-        }
-        
         @available(iOS 10, *)
         public func sign(_ digest: Data, algorithm: Algorithm, authenticationContext: LAContext? = nil) throws -> Data {
             let privateKey = try getKeys().private.accessibleWithAuthenticationContext(authenticationContext)
             return try helper.sign(digest, privateKey: privateKey, algorithm: algorithm)
         }
         
-        public func verify(signature: Data, originalDigest: Data) throws -> Bool {
-            return try helper.verify(signature: signature, digest: originalDigest, publicKey: getKeys().public)
+        @available(OSX, unavailable)
+        @available(iOS, deprecated: 10.0, message: "This method and extra complexity will be removed when 9.0 is obsolete.")
+        public func signUsingSha256(_ digest: Data, authenticationContext: LAContext? = nil) throws -> Data {
+            #if os(iOS)
+                return try helper.signUsingSha256(digest, privateKey: getKeys().private.accessibleWithAuthenticationContext(authenticationContext))
+            #else
+                throw Error.inconcistency(message: "Should be unreachable.")
+            #endif
         }
         
         @available(iOS 10, *)
-        public func verify(signature: Data, originalDigest: Data, algorithm: Algorithm) throws -> Bool {
-            return try helper.verify(signature: signature, digest: originalDigest, publicKey: getKeys().public, algorithm: algorithm)
+        public func verify(signature: Data, originalDigest: Data, algorithm: Algorithm) throws {
+            try helper.verify(signature: signature, digest: originalDigest, publicKey: getKeys().public, algorithm: algorithm)
+        }
+        
+        @available(OSX, unavailable)
+        @available(iOS, deprecated: 10.0, message: "This method and extra complexity will be removed when 9.0 is obsolete.")
+        public func verifyUsingSha256(signature: Data, originalDigest: Data) throws  {
+            #if os(iOS)
+                try helper.verifyUsingSha256(signature: signature, digest: originalDigest, publicKey: getKeys().public)
+            #else
+                throw Error.inconcistency(message: "Should be unreachable.")
+            #endif
         }
         
         @available(iOS 10.3, *) // API available at 10.0, but bugs made it unusable on versions lower than 10.3
@@ -220,18 +232,6 @@ public enum EllipticCurveKeyPair {
             try Query.deletePrivateKey(labeled: config.privateLabel, accessGroup: config.privateKeyAccessGroup)
         }
         
-        public func sign(_ digest: Data, privateKey: PrivateKey) throws -> Data {
-            #if os(OSX)
-                return try sign(digest, privateKey: privateKey, algorithm: .sha256)
-            #elseif os(iOS)
-                if #available(iOS 10, *) {
-                    return try sign(digest, privateKey: privateKey, algorithm: .sha256)
-                } else {
-                    return try signUsingOldApi(digest, privateKey: privateKey)
-                }
-            #endif
-        }
-        
         @available(iOS 10.0, *)
         public func sign(_ digest: Data, privateKey: PrivateKey, algorithm: Algorithm) throws -> Data {
             Helper.logToConsoleIfExecutingOnMainThread()
@@ -243,8 +243,9 @@ public enum EllipticCurveKeyPair {
             return signature as Data
         }
         
+        @available(OSX, unavailable)
         @available(iOS, deprecated: 10.0, message: "This method and extra complexity will be removed when 9.0 is obsolete.")
-        private func signUsingOldApi(_ digest: Data, privateKey: PrivateKey) throws -> Data {
+        public func signUsingSha256(_ digest: Data, privateKey: PrivateKey) throws -> Data {
             #if os(iOS)
                 Helper.logToConsoleIfExecutingOnMainThread()
                 let digestToSign = digest.sha256()
@@ -263,34 +264,25 @@ public enum EllipticCurveKeyPair {
                 let signature = Data(bytes: &signatureBytes, count: signatureLength)
                 return signature
             #else
-                throw Error.inconcistency(message: "This method is not supported. This is likely an internal bug in \(EllipticCurveKeyPair.self).")
-            #endif
-        }
-        
-        public func verify(signature: Data, digest: Data, publicKey: PublicKey) throws -> Bool {
-            #if os(OSX)
-                return try verify(signature:signature, digest: digest, publicKey: publicKey, algorithm: .sha256)
-            #elseif os(iOS)
-                if #available(iOS 10, *) {
-                    return try verify(signature:signature, digest: digest, publicKey: publicKey, algorithm: .sha256)
-                } else {
-                    return try verifyUsingOldApi(signature:signature, digest: digest, publicKey: publicKey)
-                }
+                throw Error.inconcistency(message: "Should be unreachable.")
             #endif
         }
         
         @available(iOS 10.0, *)
-        public func verify(signature: Data, digest: Data, publicKey: PublicKey, algorithm: Algorithm) throws -> Bool {
+        public func verify(signature: Data, digest: Data, publicKey: PublicKey, algorithm: Algorithm) throws {
             var error : Unmanaged<CFError>?
             let valid = SecKeyVerifySignature(publicKey.underlying, algorithm.signatureMessage, digest as CFData, signature as CFData, &error)
             if let error = error?.takeRetainedValue() {
                 throw Error.fromError(error, message: "Could not create signature.")
             }
-            return valid
+            guard valid == true else {
+                throw Error.inconcistency(message: "Signature yielded no error, but still marks itself as unsuccessful")
+            }
         }
         
+        @available(OSX, unavailable)
         @available(iOS, deprecated: 10.0, message: "This method and extra complexity will be removed when 9.0 is obsolete.")
-        private func verifyUsingOldApi(signature: Data, digest: Data, publicKey: PublicKey) throws -> Bool {
+        public func verifyUsingSha256(signature: Data, digest: Data, publicKey: PublicKey) throws {
             #if os(iOS)
                 let sha = digest.sha256()
                 var shaBytes = [UInt8](repeating: 0, count: sha.count)
@@ -303,14 +295,13 @@ public enum EllipticCurveKeyPair {
                 guard status == errSecSuccess else {
                     throw Error.osStatus(message: "Could not verify signature.", osStatus: status)
                 }
-                return true
             #else
-                throw Error.inconcistency(message: "Internal error.")
+                throw Error.inconcistency(message: "Should be unreachable.")
             #endif
         }
         
         @available(iOS 10.3, *)
-        public func encrypt(_ digest: Data, publicKey: PublicKey, algorithm: Algorithm = .sha256) throws -> Data {
+        public func encrypt(_ digest: Data, publicKey: PublicKey, algorithm: Algorithm) throws -> Data {
             var error : Unmanaged<CFError>?
             let result = SecKeyCreateEncryptedData(publicKey.underlying, algorithm.encryptionEciesEcdh, digest as CFData, &error)
             guard let data = result else {
@@ -320,7 +311,7 @@ public enum EllipticCurveKeyPair {
         }
         
         @available(iOS 10.3, *)
-        public func decrypt(_ encrypted: Data, privateKey: PrivateKey, algorithm: Algorithm = .sha256) throws -> Data {
+        public func decrypt(_ encrypted: Data, privateKey: PrivateKey, algorithm: Algorithm) throws -> Data {
             Helper.logToConsoleIfExecutingOnMainThread()
             var error : Unmanaged<CFError>?
             let result = SecKeyCreateDecryptedData(privateKey.underlying, algorithm.encryptionEciesEcdh, encrypted as CFData, &error)
@@ -628,7 +619,6 @@ public enum EllipticCurveKeyPair {
             let underlying = try Query.getKey(query)
             return PrivateKey(underlying)
         }
-        
     }
     
     public final class AccessControl {

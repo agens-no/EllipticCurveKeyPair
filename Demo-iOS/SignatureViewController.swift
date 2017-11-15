@@ -94,10 +94,11 @@ class SignatureViewController: UIViewController {
             }
             return digest
         }, thenAsync: { digest in
-            return try Shared.keypair.sign(digest, algorithm: .sha256, authenticationContext: self.context)
+            return try Shared.keypair.signUsingSha256(digest, authenticationContext: self.context)
         }, thenOnMain: { digest, signature in
-            self.signatureTextView.text = tuple.signature.base64EncodedString()
-            try verifyAndLog(manager: Shared.keypair, signed: tuple.signature, digest: tuple.digest, algorithm: .sha256)
+            self.signatureTextView.text = signature.base64EncodedString()
+            try Shared.keypair.verifyUsingSha256(signature: signature, originalDigest: digest)
+            try printVerifySignatureInOpenssl(manager: Shared.keypair, signed: signature, digest: digest, shaAlgorithm: "sha256")
         }, catchToMain: { error in
             self.signatureTextView.text = "Error: \(error)"
         })

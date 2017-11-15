@@ -157,7 +157,7 @@ class EncryptionViewController: UIViewController {
                 throw "Could not convert decrypted data to string"
             }
             return decrypted
-        }, thenOnMain: { (decrypted) in
+        }, thenOnMain: { encrypted, decrypted in
             self.state = .decrypted(decrypted)
         }, catchToMain: { (error) in
             self.state = .error(error)

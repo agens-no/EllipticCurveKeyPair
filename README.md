@@ -95,7 +95,7 @@ See demo app for working example
 ```swift
 do {
     let digest = "some text to sign".data(using: .utf8)!
-    let signature = try KeyPair.manager.sign(digest)
+    let signature = try KeyPair.manager.sign(digest, algorithm: .sha256)
 } catch {
     // handle error
 }
@@ -107,7 +107,7 @@ See demo app for working example
 ```swift
 do {
     let digest = "some text to encrypt".data(using: .utf8)!
-    let encrypted = try KeyPair.manager.encrypt(digest)
+    let encrypted = try KeyPair.manager.encrypt(digest, algorithm: .sha256)
 } catch {
     // handle error
 }
@@ -119,7 +119,7 @@ See demo app for working example
 ```swift
 do {
     let encrypted = ...
-    let decrypted = try KeyPair.manager.decrypt(encrypted)
+    let decrypted = try KeyPair.manager.decrypt(encrypted, algorithm: .sha256)
     let decryptedString = String(data: decrypted, encoding: .utf8)
 } catch {
     // handle error
@@ -249,7 +249,7 @@ The `SHA256` class (originally `SHA2.swift`) is found in the invaluable [CryptoS
 ## FAQ
 
 **Why am I not being prompted with touch id / device pin on simulator?**  
-> The simulator doesn’t posess any secure enclave and therefore trying to access it would just lead to errors. For your leisure we store the private key in keychain instead of the secure enclave on simulator. This makes development faster and easier. The only diff [is a single line of code](https://github.com/agens-no/EllipticCurveKeyPair/blob/70c248e83e8c0aaf73a9c27a1bce4becfe257bba/Sources/EllipticCurveKeyPair.swift#L124-L137).
+> The simulator doesn’t possess any secure enclave and therefore trying to access it would just lead to errors. If you set `fallbackToKeychainIfSecureEnclaveIsNotAvailable` to `true` then the private key will be stored in keychain on simulator making it easy to test your application on simulator as well.
 
 **Where can I learn more?**  
 > Check out this video on [WWDC 2015](https://developer.apple.com/videos/play/wwdc2015/706/) about Security in general or [click here](https://developer.apple.com/videos/play/wwdc2015/706/?time=2069) to skip right to the section about the Secure Enclave.
