@@ -32,6 +32,8 @@
 		A381D7A91F98A5160069D88C /* SHA256.swift in Sources */ = {isa = PBXBuildFile; fileRef = A381D7A61F98A5160069D88C /* SHA256.swift */; };
 		A381D7B11F98A58B0069D88C /* SHA256Test.swift in Sources */ = {isa = PBXBuildFile; fileRef = A381D7AF1F98A58B0069D88C /* SHA256Test.swift */; };
 		A381D7B21F98A58B0069D88C /* SHA256Test.swift in Sources */ = {isa = PBXBuildFile; fileRef = A381D7AF1F98A58B0069D88C /* SHA256Test.swift */; };
+		A3FD3A961FBC54A900747A5F /* SignatureViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3FD3A951FBC54A900747A5F /* SignatureViewController.swift */; };
+		A3FD3A981FBC54B700747A5F /* EncryptionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3FD3A971FBC54B700747A5F /* EncryptionViewController.swift */; };
 		DD7502881C68FEDE006590AF /* EllipticCurveKeyPair.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52D6DA0F1BF000BD002C0205 /* EllipticCurveKeyPair.framework */; };
 /* End PBXBuildFile section */
 
@@ -115,6 +117,8 @@
 		A35A40111FB9CC8D0093C12B /* Utils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
 		A381D7A61F98A5160069D88C /* SHA256.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SHA256.swift; sourceTree = "<group>"; };
 		A381D7AF1F98A58B0069D88C /* SHA256Test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SHA256Test.swift; sourceTree = "<group>"; };
+		A3FD3A951FBC54A900747A5F /* SignatureViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignatureViewController.swift; sourceTree = "<group>"; };
+		A3FD3A971FBC54B700747A5F /* EncryptionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncryptionViewController.swift; sourceTree = "<group>"; };
 		AD2FAA261CD0B6D800659CF4 /* EllipticCurveKeyPair.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = EllipticCurveKeyPair.plist; sourceTree = "<group>"; };
 		AD2FAA281CD0B6E100659CF4 /* EllipticCurveKeyPairTests.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = EllipticCurveKeyPairTests.plist; sourceTree = "<group>"; };
 		DD75027A1C68FCFC006590AF /* EllipticCurveKeyPair-macOS Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "EllipticCurveKeyPair-macOS Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -229,6 +233,8 @@
 			children = (
 				A35A3FE11FB9CBE80093C12B /* AppDelegate.swift */,
 				A35A3FE31FB9CBE80093C12B /* ViewController.swift */,
+				A3FD3A951FBC54A900747A5F /* SignatureViewController.swift */,
+				A3FD3A971FBC54B700747A5F /* EncryptionViewController.swift */,
 				A35A3FE51FB9CBE80093C12B /* Assets.xcassets */,
 				A35A3FE71FB9CBE80093C12B /* Main.storyboard */,
 				A35A3FEA1FB9CBE80093C12B /* Info.plist */,
@@ -241,8 +247,8 @@
 			isa = PBXGroup;
 			children = (
 				A35A3FF51FB9CC1B0093C12B /* AppDelegate.swift */,
-				A35A3FF71FB9CC1B0093C12B /* EncryptionViewController.swift */,
 				A35A3FF91FB9CC1B0093C12B /* SignatureViewController.swift */,
+				A35A3FF71FB9CC1B0093C12B /* EncryptionViewController.swift */,
 				A35A3FFB1FB9CC1B0093C12B /* Main.storyboard */,
 				A35A3FFE1FB9CC1B0093C12B /* Assets.xcassets */,
 				A35A40001FB9CC1B0093C12B /* LaunchScreen.storyboard */,
@@ -423,7 +429,7 @@
 					};
 					A35A3FDE1FB9CBE70093C12B = {
 						CreatedOnToolsVersion = 9.1;
-						DevelopmentTeam = 33KVL2LY9J;
+						DevelopmentTeam = X67P89Q627;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.Keychain = {
@@ -548,6 +554,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				A35A3FE41FB9CBE80093C12B /* ViewController.swift in Sources */,
+				A3FD3A961FBC54A900747A5F /* SignatureViewController.swift in Sources */,
+				A3FD3A981FBC54B700747A5F /* EncryptionViewController.swift in Sources */,
 				A35A3FE21FB9CBE80093C12B /* AppDelegate.swift in Sources */,
 				A309130D1FBB069A003A9046 /* Utils.swift in Sources */,
 			);
@@ -865,12 +873,12 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 33KVL2LY9J;
+				DEVELOPMENT_TEAM = X67P89Q627;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = "Demo-macOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.12.1;
-				PRODUCT_BUNDLE_IDENTIFIER = "no.agens.Demo-macOS";
+				PRODUCT_BUNDLE_IDENTIFIER = no.agens.demo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
@@ -898,12 +906,12 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 33KVL2LY9J;
+				DEVELOPMENT_TEAM = X67P89Q627;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = "Demo-macOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.12.1;
-				PRODUCT_BUNDLE_IDENTIFIER = "no.agens.Demo-macOS";
+				PRODUCT_BUNDLE_IDENTIFIER = no.agens.demo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
