@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
     "Marcin Krzyżanowski" => "marcin.krzyzanowski@gmail.com"
   }
   s.ios.deployment_target = "9.0"
-  s.osx.deployment_target = "10.12"
+  s.osx.deployment_target = "10.12.1"
   s.source       = { :git => "https://github.com/agens-no/EllipticCurveKeyPair.git", :tag => s.version.to_s }
   s.source_files  = "Sources/**/*"
   s.frameworks  = ["Foundation", "LocalAuthentication", "Security"]

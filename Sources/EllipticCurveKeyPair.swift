@@ -27,7 +27,7 @@ import Foundation
 import Security
 import LocalAuthentication
 
-@available(OSX 10.12, iOS 9.0, *)
+@available(OSX 10.12.1, iOS 9.0, *)
 public enum EllipticCurveKeyPair {
     
     public typealias Logger = (String) -> ()
