@@ -585,6 +585,28 @@ public enum EllipticCurveKeyPair {
         }
         
         private func queryData() throws -> PublicKeyData {
+            let keyRaw: Data
+            if #available(iOS 10.0, *) {
+                keyRaw = try export()
+            } else {
+                keyRaw = try exportWithOldApi()
+            }
+            guard keyRaw.first == Constants.noCompression else {
+                throw Error.inconcistency(message: "Tried reading public key bytes, but its headers says it is compressed and this library only handles uncompressed keys.")
+            }
+            return PublicKeyData(keyRaw)
+        }
+        
+        @available(iOS 10.0, *)
+        private func export() throws -> Data {
+            var error : Unmanaged<CFError>?
+            guard let raw = SecKeyCopyExternalRepresentation(underlying, &error) else {
+                throw EllipticCurveKeyPair.Error.fromError(error?.takeRetainedValue(), message: "Tried reading public key bytes.")
+            }
+            return raw as Data
+        }
+        
+        private func exportWithOldApi() throws -> Data {
             var matchResult: AnyObject? = nil
             let query: [String:Any] = [
                 kSecClass as String: kSecClassKey,
@@ -597,12 +619,9 @@ public enum EllipticCurveKeyPair {
                 throw Error.osStatus(message: "Could not generate keypair", osStatus: status)
             }
             guard let keyRaw = matchResult as? Data else {
-                throw Error.inconcistency(message: "Tried reading public key bytes, but something went wrong. Expected data, but received \(String(describing: matchResult)).")
+                throw Error.inconcistency(message: "Tried reading public key bytes. Expected data, but received \(String(describing: matchResult)).")
             }
-            guard keyRaw.first == Constants.noCompression else {
-                throw Error.inconcistency(message: "Tried reading public key bytes, but its headers says it is compressed.")
-            }
-            return PublicKeyData(keyRaw)
+            return keyRaw
         }
     }
     
