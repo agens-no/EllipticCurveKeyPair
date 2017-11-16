@@ -13,10 +13,26 @@ import EllipticCurveKeyPair
 class SignatureViewController: NSViewController {
     
     struct Shared {
+        
+        static var hasTouchId: Bool {
+            return LAContext().canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
+        }
+        
+        /*
+         Macbooks without TouchID will get to access this private key without any prompt at all in this demo project
+         */
+        static var privateKeyAccessFlags: SecAccessControlCreateFlags {
+            if hasTouchId {
+                return [.userPresence, .privateKeyUsage]
+            } else {
+                return []
+            }
+        }
+        
         static let keypair: EllipticCurveKeyPair.Manager = {
             EllipticCurveKeyPair.logger = { print($0) }
             let publicAccessControl = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAlwaysThisDeviceOnly, flags: [])
-            let privateAccessControl = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: [.touchIDAny, .privateKeyUsage])
+            let privateAccessControl = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: privateKeyAccessFlags)
             let config = EllipticCurveKeyPair.Config(
                 publicLabel: "no.agens.sign.public",
                 privateLabel: "no.agens.sign.private",

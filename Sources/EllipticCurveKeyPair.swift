@@ -453,7 +453,9 @@ public enum EllipticCurveKeyPair {
                 logger?("SecItemAdd: \(query)")
                 status = SecItemAdd(query as CFDictionary, &raw)
             }
-            guard status == errSecSuccess else {
+            if status == errSecInvalidRecord {
+                throw Error.osStatus(message: "Could not save public key. It is possible that the access control you have provided is not supported on this OS and/or hardware.", osStatus: status)
+            } else if status != errSecSuccess {
                 throw Error.osStatus(message: "Could not save public key", osStatus: status)
             }
         }
