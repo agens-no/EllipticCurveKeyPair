@@ -29,19 +29,12 @@ import EllipticCurveKeyPair
 class SignatureViewController: UIViewController {
     
     struct Shared {
-        
-        static var privateKeyAccessFlags: SecAccessControlCreateFlags {
-            if EllipticCurveKeyPair.Device.hasSecureEnclave {
-                return [.userPresence, .privateKeyUsage]
-            } else {
-                return [.userPresence]
-            }
-        }
-        
         static let keypair: EllipticCurveKeyPair.Manager = {
             EllipticCurveKeyPair.logger = { print($0) }
             let publicAccessControl = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAlwaysThisDeviceOnly, flags: [])
-            let privateAccessControl = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: privateKeyAccessFlags)
+            let privateAccessControl = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: {
+                return EllipticCurveKeyPair.Device.hasSecureEnclave ? [.userPresence, .privateKeyUsage] : [.userPresence]
+            }())
             let config = EllipticCurveKeyPair.Config(
                 publicLabel: "no.agens.sign.public",
                 privateLabel: "no.agens.sign.private",

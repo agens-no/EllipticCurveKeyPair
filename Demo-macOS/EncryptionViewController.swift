@@ -14,18 +14,12 @@ class EncryptionViewController: NSViewController {
     
     struct Shared {
         
-        static var privateKeyAccessFlags: SecAccessControlCreateFlags {
-            if EllipticCurveKeyPair.Device.hasTouchID {
-                return [.userPresence, .privateKeyUsage]
-            } else {
-                return [.devicePasscode]
-            }
-        }
-        
         static let keypair: EllipticCurveKeyPair.Manager = {
             EllipticCurveKeyPair.logger = { print($0) }
             let publicAccessControl = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAlwaysThisDeviceOnly, flags: [])
-            let privateAccessControl = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: privateKeyAccessFlags)
+            let privateAccessControl = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: {
+                return EllipticCurveKeyPair.Device.hasSecureEnclave ? [.userPresence, .privateKeyUsage] : [.userPresence]
+            }())
             let config = EllipticCurveKeyPair.Config(
                 publicLabel: "no.agens.encrypt.public",
                 privateLabel: "no.agens.encrypt.private",

@@ -53,15 +53,16 @@ For more examples see demo app.
 
 ```swift
 struct KeyPair {
-  static let manager: EllipticCurveKeyPair.Manager = {
-        let accessControlPublic = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAlways, flags: [])
-        let accessControlPrivate = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: [.userPresence, .privateKeyUsage])
+    static let manager: EllipticCurveKeyPair.Manager = {
+        let publicAccessControl = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAlwaysThisDeviceOnly, flags: [])
+        let privateAccessControl = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: [.userPresence, .privateKeyUsage])
         let config = EllipticCurveKeyPair.Config(
             publicLabel: "payment.sign.public",
             privateLabel: "payment.sign.private",
             operationPrompt: "Confirm payment",
             publicKeyAccessControl: accessControlPublic,
             privateKeyAccessControl: accessControlPrivate)
+            token: .secureEnclave)
         return EllipticCurveKeyPair.Manager(config: config)
     }()
 }
