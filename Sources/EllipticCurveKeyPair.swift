@@ -58,10 +58,8 @@ public enum EllipticCurveKeyPair {
         // Useful for shared keychain items
         public var privateKeyAccessGroup: String?
         
-        // iOS Simulator doesn't have any Secure Enclave.
-        // Thus if you would like your app to be able to run on simulator it may be useful to
-        // set this to true – allowing you to decrypt and sign without the Secure Enclave.
-        public var fallbackToKeychainIfSecureEnclaveIsNotAvailable: Bool
+        // Should it be stored on .secureEnclave or in .keychain ?
+        public var token: Token
         
         public init(publicLabel: String,
                     privateLabel: String,
@@ -70,7 +68,7 @@ public enum EllipticCurveKeyPair {
                     privateKeyAccessControl: AccessControl,
                     publicKeyAccessGroup: String? = nil,
                     privateKeyAccessGroup: String? = nil,
-                    fallbackToKeychainIfSecureEnclaveIsNotAvailable: Bool = false) {
+                    token: Token) {
             self.publicLabel = publicLabel
             self.privateLabel = privateLabel
             self.operationPrompt = operationPrompt
@@ -78,7 +76,7 @@ public enum EllipticCurveKeyPair {
             self.privateKeyAccessControl = privateKeyAccessControl
             self.publicKeyAccessGroup = publicKeyAccessGroup
             self.privateKeyAccessGroup = privateKeyAccessGroup
-            self.fallbackToKeychainIfSecureEnclaveIsNotAvailable = fallbackToKeychainIfSecureEnclaveIsNotAvailable
+            self.token = token
         }
     }
     
@@ -164,21 +162,9 @@ public enum EllipticCurveKeyPair {
                 return keyPair
             }
             
-            do {
-                let keyPair = try helper.generateAndStoreOnSecureEnclave()
-                cache = keyPair
-                return keyPair
-            } catch {
-                if case let Error.underlying(message: _, error: underlying) = error,
-                    underlying.code == errSecUnimplemented || underlying.code == errSecAuthFailed || underlying.code == errSecParam,
-                    config.fallbackToKeychainIfSecureEnclaveIsNotAvailable {
-                    let keyPair = try helper.generateAndStoreInKeyChain()
-                    cache = keyPair
-                    return keyPair
-                } else {
-                    throw error
-                }
-            }
+            let keyPair = try helper.generateKeyPair()
+            cache = keyPair
+            return keyPair
         }
         
     }
@@ -201,22 +187,17 @@ public enum EllipticCurveKeyPair {
             }
         }
         
-        public func generateAndStoreOnSecureEnclave() throws -> (`public`: PublicKey, `private`: PrivateKey) {
-            let query = try Query.generateKeyPairQuery(config: config, secureEnclave: true)
-            return try generateKeyPair(query: query)
-        }
-        
-        public func generateAndStoreInKeyChain() throws -> (`public`: PublicKey, `private`: PrivateKey) {
-            let query = try Query.generateKeyPairQuery(config: config, secureEnclave: false)
-            return try generateKeyPair(query: query)
-        }
-        
-        private func generateKeyPair(query: [String:Any]) throws -> (`public`: PublicKey, `private`: PrivateKey) {
+        public func generateKeyPair() throws -> (`public`: PublicKey, `private`: PrivateKey) {
+            let query = try Query.generateKeyPairQuery(config: config, token: config.token)
             var publicOptional, privateOptional: SecKey?
             logger?("SecKeyGeneratePair: \(query)")
             let status = SecKeyGeneratePair(query as CFDictionary, &publicOptional, &privateOptional)
             guard status == errSecSuccess else {
-                throw Error.osStatus(message: "Could not generate keypair.", osStatus: status)
+                if status == errSecAuthFailed {
+                    throw Error.osStatus(message: "Could not generate keypair. Security probably doesn't like the access flags you provided. Specifically if this device doesn't have secure enclave and you pass `.privateKeyUsage`. it will produce this error.", osStatus: status)
+                } else {
+                    throw Error.osStatus(message: "Could not generate keypair.", osStatus: status)
+                }
             }
             guard let publicSec = publicOptional, let privateSec = privateOptional else {
                 throw Error.inconcistency(message: "Created private public key pair successfully, but weren't able to retreive it.")
@@ -372,7 +353,7 @@ public enum EllipticCurveKeyPair {
             return params
         }
         
-        static func generateKeyPairQuery(config: Config, secureEnclave: Bool) throws -> [String:Any] {
+        static func generateKeyPairQuery(config: Config, token: Token) throws -> [String:Any] {
             
             // private
             var privateKeyParams: [String: Any] = [
@@ -404,7 +385,7 @@ public enum EllipticCurveKeyPair {
                 kSecPublicKeyAttrs as String: publicKeyParams,
                 kSecAttrKeySizeInBits as String: 256,
                 ]
-            if secureEnclave {
+            if token == .secureEnclave {
                 params[kSecAttrTokenID as String] = kSecAttrTokenIDSecureEnclave
             }
             return params
@@ -712,12 +693,14 @@ public enum EllipticCurveKeyPair {
     
     @available(iOS 10.0, *)
     public enum Algorithm: String {
+        
         case sha1
         case sha224
-        case sha384
         case sha256
+        case sha384
         case sha512
         
+        @available(iOS 10.0, *)
         var signatureMessage: SecKeyAlgorithm {
             switch self {
             case .sha1:
@@ -733,6 +716,7 @@ public enum EllipticCurveKeyPair {
             }
         }
         
+        @available(iOS 10.0, *)
         var encryptionEciesEcdh: SecKeyAlgorithm {
             switch self {
             case .sha1:
@@ -747,5 +731,34 @@ public enum EllipticCurveKeyPair {
                 return SecKeyAlgorithm.eciesEncryptionStandardX963SHA512AESGCM
             }
         }
+    }
+    
+    public enum Token {
+        case secureEnclave
+        case keychain
+        
+        public static var secureEnclaveIfAvailable: Token {
+            return Device.hasSecureEnclave ? .secureEnclave : .keychain
+        }
+    }
+    
+    public enum Device {
+        
+        public static var hasTouchID: Bool {
+            if #available(OSX 10.12.2, *) {
+                return LAContext().canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
+            } else {
+                return false
+            }
+        }
+        
+        public static var isSimulator: Bool {
+            return TARGET_OS_SIMULATOR != 0
+        }
+        
+        public static var hasSecureEnclave: Bool {
+            return hasTouchID && !isSimulator
+        }
+        
     }
 }

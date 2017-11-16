@@ -14,15 +14,8 @@ class EncryptionViewController: NSViewController {
     
     struct Shared {
         
-        static var hasTouchId: Bool {
-            return LAContext().canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
-        }
-        
-        /*
-         Macbooks without TouchID will get to access this private key without any prompt at all in this demo project
-         */
         static var privateKeyAccessFlags: SecAccessControlCreateFlags {
-            if hasTouchId {
+            if EllipticCurveKeyPair.Device.hasTouchID {
                 return [.userPresence, .privateKeyUsage]
             } else {
                 return [.devicePasscode]
@@ -39,7 +32,7 @@ class EncryptionViewController: NSViewController {
                 operationPrompt: "Decrypt",
                 publicKeyAccessControl: publicAccessControl,
                 privateKeyAccessControl: privateAccessControl,
-                fallbackToKeychainIfSecureEnclaveIsNotAvailable: true)
+                token: .secureEnclaveIfAvailable)
             return EllipticCurveKeyPair.Manager(config: config)
         }()
     }

@@ -14,18 +14,11 @@ class SignatureViewController: NSViewController {
     
     struct Shared {
         
-        static var hasTouchId: Bool {
-            return LAContext().canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
-        }
-        
-        /*
-         Macbooks without TouchID will get to access this private key without any prompt at all in this demo project
-         */
         static var privateKeyAccessFlags: SecAccessControlCreateFlags {
-            if hasTouchId {
+            if EllipticCurveKeyPair.Device.hasSecureEnclave {
                 return [.userPresence, .privateKeyUsage]
             } else {
-                return [.devicePasscode]
+                return [.userPresence]
             }
         }
         
@@ -39,7 +32,7 @@ class SignatureViewController: NSViewController {
                 operationPrompt: "Sign transaction",
                 publicKeyAccessControl: publicAccessControl,
                 privateKeyAccessControl: privateAccessControl,
-                fallbackToKeychainIfSecureEnclaveIsNotAvailable: true)
+                token: .secureEnclaveIfAvailable)
             return EllipticCurveKeyPair.Manager(config: config)
         }()
     }
