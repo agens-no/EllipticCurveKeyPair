@@ -684,7 +684,7 @@
         <!--Tab View Controller-->
         <scene sceneID="eQE-Q6-f0i">
             <objects>
-                <tabViewController selectedTabViewItemIndex="1" id="GbN-LC-IbI" sceneMemberID="viewController">
+                <tabViewController selectedTabViewItemIndex="0" id="GbN-LC-IbI" sceneMemberID="viewController">
                     <tabViewItems>
                         <tabViewItem label="Signature" identifier="" id="McF-ze-Q1Y"/>
                         <tabViewItem label="Encryption" identifier="" id="oOx-cl-4EW"/>
