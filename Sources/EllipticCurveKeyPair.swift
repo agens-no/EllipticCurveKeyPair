@@ -273,7 +273,7 @@ public enum EllipticCurveKeyPair {
             var error : Unmanaged<CFError>?
             let valid = SecKeyVerifySignature(publicKey.underlying, algorithm.signatureMessage, digest as CFData, signature as CFData, &error)
             if let error = error?.takeRetainedValue() {
-                throw Error.fromError(error, message: "Could not create signature.")
+                throw Error.fromError(error, message: "Could not verify signature.")
             }
             guard valid == true else {
                 throw Error.inconcistency(message: "Signature yielded no error, but still marks itself as unsuccessful")
