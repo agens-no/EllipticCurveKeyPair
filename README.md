@@ -1,4 +1,4 @@
-EllipticCurveKeyPair 🔑🔑
+Elliptic Curve Key Pair 🔑🔑
 ========================
 
 ![](https://img.shields.io/badge/macOS-10.12.1-brightgreen.svg)
