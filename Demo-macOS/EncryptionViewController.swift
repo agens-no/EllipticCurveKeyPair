@@ -25,7 +25,7 @@ class EncryptionViewController: NSViewController {
             if hasTouchId {
                 return [.userPresence, .privateKeyUsage]
             } else {
-                return []
+                return [.devicePasscode]
             }
         }
         
