@@ -1,6 +1,9 @@
 EllipticCurveKeyPair 🔑🔑
 ========================
 
+![](https://img.shields.io/badge/macOS-10.12.1-brightgreen.svg)
+![](https://img.shields.io/badge/iOS-9.0-brightgreen.svg)
+
 Sign, verify, encrypt and decrypt using the Secure Enclave on iOS and MacOS.
 
 ![](https://raw.githubusercontent.com/wiki/agens-no/EllipticCurveKeyPair/iphonex-decrypt-w-background.gif)
