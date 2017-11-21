@@ -1,14 +1,17 @@
-Elliptic Curve Key Pair 🔑🔑
-========================
-
-![](https://img.shields.io/badge/macOS-10.12.1-brightgreen.svg)
-![](https://img.shields.io/badge/iOS-9.0-brightgreen.svg)
+Elliptic Curve Key Pair
+=======================
 
 Sign, verify, encrypt and decrypt using the Secure Enclave on iOS and MacOS.
 
 ![](https://raw.githubusercontent.com/wiki/agens-no/EllipticCurveKeyPair/iphonex-decrypt-w-background.gif)
 
+![macOS 10.12.1 support](https://img.shields.io/badge/macOS-10.12.1%2B-brightgreen.svg)
+![iOS 9 support](https://img.shields.io/badge/iOS-9.0%2B-brightgreen.svg)
+![Swift 4 support](https://img.shields.io/badge/swift-4-brightgreen.svg)
+![](https://img.shields.io/badge/carthage-compatible-brightgreen.svg)
+![](https://img.shields.io/badge/cocoapods-compatible-brightgreen.svg)
 
+For swift 3 support head to [`swift3`](https://github.com/agens-no/EllipticCurveKeyPair/tree/swift3) branch.
 
 ## Features
 
@@ -22,11 +25,11 @@ Sign, verify, encrypt and decrypt using the Secure Enclave on iOS and MacOS.
 Supports FaceID, TouchID, device pass code and application password.
 
 
-## Nitty-gritty
+## About
 
 Using the Security Framework can be a little bit confusing. That’s why I created this. You may use it as example code and guidance or you may use it as a micro framework.
 
-I found it tricky to figure out how to use the `SecKeyRawVerify`, `SecKeyGeneratePair` and `SecItemCopyMatching` C APIs in Swift 3, but the implementation is quite straight forward thanks to awesome Swift 3 features.
+I found it tricky to figure out how to use the `SecKeyRawVerify`, `SecKeyGeneratePair` and `SecItemCopyMatching` C APIs in Swift 3, but the implementation is quite straight forward thanks to awesome Swift features.
 
 
 
@@ -34,16 +37,17 @@ I found it tricky to figure out how to use the `SecKeyRawVerify`, `SecKeyGenerat
 
 #### Manual
 
-Just drag the [Sources/EllipticCurveKeyPair.swift](Sources/EllipticCurveKeyPair.swift) and [Sources/SHA256.swift](Sources/SHA256.swift) file into your Xcode project.
+Just drag [`Sources/EllipticCurveKeyPair.swift`](Sources/EllipticCurveKeyPair.swift) and [`Sources/SHA256.swift`](Sources/SHA256.swift) file into your Xcode project.
 
 #### Cocoapods
 
-```
+```ruby
 pod EllipticCurveKeyPair
 ```
+
 #### Carthage
 
-```
+```ruby
 github "agens-no/EllipticCurveKeyPair"
 ```
 
@@ -180,7 +184,7 @@ There are lots of great possibilities with Secure Enclave. Here are some example
 1. Encrypt a message using the public key
 1. Decrypt the message using the private key – only accessible with touch id / device pin
 
-Only available on iOS 10
+Only available on iOS 10 and above
 
 ### Signing
 
@@ -232,7 +236,7 @@ PS: This script will create 4 files in your current directory.
 
 
 ## Keywords
-Security framework, Swift 3, Swift, SecKeyRawVerify, SecKeyGeneratePair, SecItemCopyMatching, secp256r1, Elliptic Curve Cryptography, ECDSA, ECDH, ASN.1, Apple, iOS, Mac OS, kSecAttrKeyTypeECSECPrimeRandom, kSecAttrKeyTypeEC, kSecAttrTokenIDSecureEnclave, LAContext, LocalAuthentication, FaceID, Face ID, TouchID, Touch ID, Application Password, Device Pin, Devicepin
+Security framework, Swift 3, Swift 4, Swift, SecKeyRawVerify, SecKeyGeneratePair, SecItemCopyMatching, secp256r1, Elliptic Curve Cryptography, ECDSA, ECDH, ASN.1, Apple, iOS, Mac OS, kSecAttrKeyTypeECSECPrimeRandom, kSecAttrKeyTypeEC, kSecAttrTokenIDSecureEnclave, LAContext, LocalAuthentication, FaceID, Face ID, TouchID, Touch ID, Application Password, Device Pin, Devicepin
 
 
 
@@ -240,7 +244,7 @@ Security framework, Swift 3, Swift, SecKeyRawVerify, SecKeyGeneratePair, SecItem
 
 ### TrailOfBits
 
-[TrailOfBits](https://github.com/trailofbits/) published some objective-c code a while back which was to great help! Thanks for [sharing](https://blog.trailofbits.com/2016/06/28/start-using-the-secure-enclave-crypto-api/) Tidas and [SecureEnclaveCrypto](https://github.com/trailofbits/SecureEnclaveCrypto). They also got some other most interesting and capable projects. Check out the new VPN solution [Algo](https://github.com/trailofbits/algo).
+[TrailOfBits](https://github.com/trailofbits/) published some objective-c code a while back which was to great help! Thanks for [sharing](https://blog.trailofbits.com/2016/06/28/start-using-the-secure-enclave-crypto-api/) Tidas and [SecureEnclaveCrypto](https://github.com/trailofbits/SecureEnclaveCrypto). They also got some other most interesting projects. Check them out!
 
 ### Quinn “the Eskimo!”, Apple
 
@@ -264,6 +268,6 @@ The `SHA256` class (originally `SHA2.swift`) is found in the invaluable [CryptoS
 
 ## Feedback
 
-We would 😍 to hear your opinion about this library. Wether you like or don’t. Please file an issue if there’s something you would like to see improved. Reach me on twitter as [@hfossli](https://twitter.com/hfossli) if you have any questions at all 😀.
+We would 😍 to hear your opinion about this library. Wether you like or don’t. Please file an issue if there’s something you would like to see improved. You can reach me as [@hfossli](https://twitter.com/hfossli) on twitter and elsewhere. 😀
 
 [<img src="http://static.agens.no/images/agens_logo_w_slogan_avenir_medium.png" width="340" />](http://agens.no/)
