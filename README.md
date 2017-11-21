@@ -7,11 +7,9 @@ Sign, verify, encrypt and decrypt using the Secure Enclave on iOS and MacOS.
 
 ![macOS 10.12.1 support](https://img.shields.io/badge/macOS-10.12.1%2B-brightgreen.svg)
 ![iOS 9 support](https://img.shields.io/badge/iOS-9.0%2B-brightgreen.svg)
-![Swift 4 support](https://img.shields.io/badge/swift-4-brightgreen.svg)
-![](https://img.shields.io/badge/carthage-compatible-brightgreen.svg)
-![](https://img.shields.io/badge/cocoapods-compatible-brightgreen.svg)
-
-For swift 3 support head to [`swift3`](https://github.com/agens-no/EllipticCurveKeyPair/tree/swift3) branch.
+![Swift 3 and 4 support](https://img.shields.io/badge/swift-3%20|%204-brightgreen.svg)
+![Carthage compatible](https://img.shields.io/badge/carthage-compatible-brightgreen.svg)
+![Cocoapods compatible](https://img.shields.io/badge/cocoapods-compatible-brightgreen.svg)
 
 ## Features
 
