@@ -50,7 +50,34 @@ github "agens-no/EllipticCurveKeyPair"
 ```
 
 
-## Usage guide and examples
+## Use cases
+
+There are lots of great possibilities with Secure Enclave. Here are some examples
+
+### Encrypting
+
+1. Encrypt a message using the public key
+1. Decrypt the message using the private key – only accessible with touch id / device pin
+
+Only available on iOS 10 and above
+
+### Signing
+
+1. Sign some data received by server using the private key – only accessible with touch id / device pin
+1. Verify that the signature is valid using the public key
+
+A use case could be
+
+1. User is requesting a new agreement / purchase
+1. Server sends a push with a session token that should be signed
+1. On device we sign the session token using the private key - prompting the user to confirm with touch id
+1. The signed token is then sent to server
+1. Server already is in posession of the public key and verifies the signature using the public key
+1. Server is now confident that user signed this agreement with touch id
+
+
+
+## Examples
 
 For more examples see demo app.
 
@@ -178,31 +205,6 @@ In order to inspect the queries going back and forth to Keychain you may print t
 EllipticCurveKeyPair.logger = { print($0) }
 ```
 
-
-## Possibilities
-
-There are lots of great possibilities with Secure Enclave. Here are some examples
-
-### Encrypting
-
-1. Encrypt a message using the public key
-1. Decrypt the message using the private key – only accessible with touch id / device pin
-
-Only available on iOS 10 and above
-
-### Signing
-
-1. Sign some data received by server using the private key – only accessible with touch id / device pin
-1. Verify that the signature is valid using the public key
-
-A use case could be
-
-1. User is requesting a new agreement / purchase
-1. Server sends a push with a session token that should be signed
-1. On device we sign the session token using the private key - prompting the user to confirm with touch id
-1. The signed token is then sent to server
-1. Server already is in posession of the public key and verifies the signature using the public key
-1. Server is now confident that user signed this agreement with touch id
 
 
 ## Verifying a signature
