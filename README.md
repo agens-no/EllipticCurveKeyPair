@@ -72,7 +72,13 @@ struct KeyPair {
     }()
 }
 ```
-See demo app for working example
+
+You can also gracefully fallback to use keychain if Secure Enclave is not available by using different access control flags:
+```swift
+let privateAccessControl = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: {
+    return EllipticCurveKeyPair.Device.hasSecureEnclave ? [.userPresence, .privateKeyUsage] : [.userPresence]
+}())
+```
 
 ### Getting the public key in DER format
 
@@ -173,7 +179,7 @@ EllipticCurveKeyPair.logger = { print($0) }
 ```
 
 
-## Possbitilites
+## Possibilities
 
 There are lots of great possibilities with Secure Enclave. Here are some examples
 
