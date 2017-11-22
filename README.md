@@ -107,6 +107,8 @@ let privateAccessControl = EllipticCurveKeyPair.AccessControl(protection: kSecAt
 }())
 ```
 
+In that case you need to remember to set `token` variable in `Config` object to `.secureEnclaveIfAvailable`. 
+
 ### Getting the public key in DER format
 
 ```swift
