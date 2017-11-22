@@ -658,16 +658,23 @@ public enum EllipticCurveKeyPair {
     
     public final class PrivateKey: Key {
         
+        public private(set) var context: LAContext?
+        
         public func isStoredOnSecureEnclave() throws -> Bool {
             let attribute = try self.attributes()[kSecAttrTokenID as String] as? String
             return attribute == (kSecAttrTokenIDSecureEnclave as String)
         }
         
         public func accessibleWithAuthenticationContext(_ context: LAContext?) throws -> PrivateKey {
+            if self.context === context {
+                return self
+            }
             var query = Query.privateKeyQuery(labeled: try label(), accessGroup: try accessGroup())
             query[kSecUseAuthenticationContext as String] = context
             let underlying = try Query.getKey(query)
-            return PrivateKey(underlying)
+            let keyWithContext = PrivateKey(underlying)
+            keyWithContext.context = context
+            return keyWithContext
         }
     }
     
