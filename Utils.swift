@@ -27,8 +27,8 @@ import EllipticCurveKeyPair
 
 extension String: Error {}
 
-func printVerifySignatureInOpenssl(manager: EllipticCurveKeyPair.Manager, signed: Data, digest: Data, shaAlgorithm: String) throws {
-    assert(shaAlgorithm.hasPrefix("sha"))
+func printVerifySignatureInOpenssl(manager: EllipticCurveKeyPair.Manager, signed: Data, digest: Data, hashAlgorithm: String) throws {
+    assert(hashAlgorithm.hasPrefix("sha"))
     var publicKeyBase = (try? manager.publicKey().data().DER.base64EncodedString()) ?? "error fetching public key"
     publicKeyBase.insert("\n", at: publicKeyBase.index(publicKeyBase.startIndex, offsetBy: 64))
     
@@ -37,7 +37,7 @@ func printVerifySignatureInOpenssl(manager: EllipticCurveKeyPair.Manager, signed
     shell.append("echo \(digest.map { String(format: "%02hhx", $0) }.joined()) | xxd -r -p > dataToSign.dat")
     shell.append("echo \(signed.map { String(format: "%02hhx", $0) }.joined()) | xxd -r -p > signature.dat")
     shell.append("cat > key.pem <<EOF\n-----BEGIN PUBLIC KEY-----\n\(publicKeyBase)\n-----END PUBLIC KEY-----\nEOF")
-    shell.append("/usr/local/opt/openssl/bin/openssl dgst -\(shaAlgorithm) -verify key.pem -signature signature.dat dataToSign.dat")
+    shell.append("/usr/local/opt/openssl/bin/openssl dgst -\(hashAlgorithm) -verify key.pem -signature signature.dat dataToSign.dat")
     print(shell.joined(separator: "\n"))
 }
 

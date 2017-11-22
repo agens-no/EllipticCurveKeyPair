@@ -99,7 +99,7 @@ class SignatureViewController: UIViewController {
         }, thenOnMain: { digest, signature in
             self.signatureTextView.text = signature.base64EncodedString()
             try Shared.keypair.verifyUsingSha256(signature: signature, originalDigest: digest)
-            try printVerifySignatureInOpenssl(manager: Shared.keypair, signed: signature, digest: digest, shaAlgorithm: "sha256")
+            try printVerifySignatureInOpenssl(manager: Shared.keypair, signed: signature, digest: digest, hashAlgorithm: "sha256")
         }, catchToMain: { error in
             self.signatureTextView.text = "Error: \(error)"
         })
