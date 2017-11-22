@@ -42,6 +42,7 @@ public enum EllipticCurveKeyPair {
         public var privateLabel: String
         
         // The text presented to the user about why we need his/her fingerprint / device pin
+        // If you are passing an LAContext to sign or decrypt this value will be rejected
         public var operationPrompt: String?
         
         // The access control used to manage the access to the public key
