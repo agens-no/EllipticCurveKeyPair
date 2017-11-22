@@ -89,7 +89,8 @@ public enum EllipticCurveKeyPair {
     public final class Manager {
         
         public let config: Config
-        private var cache: (`public`: PublicKey, `private`: PrivateKey)? = nil
+        private var cachedPublicKey: PublicKey? = nil
+        private var cachedPrivateKey: PrivateKey? = nil
         private let helper: Helper
         
         public init(config: Config) {
@@ -98,16 +99,56 @@ public enum EllipticCurveKeyPair {
         }
         
         public func deleteKeyPair() throws {
-            cache = nil
+            cachedPublicKey = nil
+            cachedPrivateKey = nil
             try helper.delete()
         }
         
         public func publicKey() throws -> PublicKey {
-            return try getKeys().public
+            if let key = cachedPublicKey {
+                return key
+            }
+            do {
+                let key = try helper.getPublicKey()
+                cachedPublicKey = key
+                return key
+            } catch EllipticCurveKeyPair.Error.underlying(_, let underlying) where underlying.code == errSecItemNotFound {
+                let keys = try helper.generateKeyPair()
+                cachedPublicKey = keys.public
+                cachedPrivateKey = keys.private
+                return keys.public
+            } catch {
+                throw error
+            }
         }
         
         public func privateKey() throws -> PrivateKey {
-            return try getKeys().private
+            if let key = cachedPrivateKey {
+                return key
+            }
+            do {
+                let key = try helper.getPrivateKey()
+                cachedPrivateKey = key
+                return key
+            } catch EllipticCurveKeyPair.Error.underlying(_, let underlying) where underlying.code == errSecItemNotFound {
+                let keys = try helper.generateKeyPair()
+                cachedPublicKey = keys.public
+                cachedPrivateKey = keys.private
+                return keys.private
+            } catch {
+                throw error
+            }
+        }
+        
+        public func keys() throws -> (`public`: PublicKey, `private`: PrivateKey) {
+            let privateKey = try self.privateKey()
+            let publicKey = try self.publicKey()
+            return (public: publicKey, private: privateKey)
+        }
+        
+        public func clearCache() {
+            cachedPublicKey = nil
+            cachedPrivateKey = nil
         }
         
         @available(iOS 10, *)
@@ -177,17 +218,24 @@ public enum EllipticCurveKeyPair {
         // The user visible label in the device's key chain
         public let config: Config
         
-        public func get() throws -> (`public`: PublicKey, `private`: PrivateKey) {
-            do {
-                let publicKey = try Query.getPublicKey(labeled: config.publicLabel, accessGroup: config.publicKeyAccessGroup)
-                let privateKey = try Query.getPrivateKey(labeled: config.privateLabel, accessGroup: config.privateKeyAccessGroup)
-                return (public: publicKey, private: privateKey)
-            } catch let error {
-                throw error
-            }
+        public func getPublicKey() throws -> PublicKey {
+            return try Query.getPublicKey(labeled: config.publicLabel, accessGroup: config.publicKeyAccessGroup)
+        }
+        
+        public func getPrivateKey() throws -> PrivateKey {
+            return try Query.getPrivateKey(labeled: config.privateLabel, accessGroup: config.privateKeyAccessGroup)
+        }
+        
+        public func getKeys() throws -> (`public`: PublicKey, `private`: PrivateKey) {
+            let privateKey = try getPrivateKey()
+            let publicKey = try getPublicKey()
+            return (public: publicKey, private: privateKey)
         }
         
         public func generateKeyPair() throws -> (`public`: PublicKey, `private`: PrivateKey) {
+            guard config.privateLabel != config.publicLabel else{
+                throw Error.inconcistency(message: "Public key and private key can not have same label")
+            }
             let query = try Query.generateKeyPairQuery(config: config, token: config.token)
             var publicOptional, privateOptional: SecKey?
             logger?("SecKeyGeneratePair: \(query)")
