@@ -155,7 +155,7 @@ class EncryptionViewController: UIViewController {
             guard #available(iOS 10.3, *) else {
                 throw "Can not encrypt on this device (must be iOS 10.3)"
             }
-            let result = try Shared.keypair.decrypt(encrypted, authenticationContext: self.context)
+            let result = try Shared.keypair.decrypt(encrypted, hash: .sha256, context: self.context)
             guard let decrypted = String(data: result, encoding: .utf8) else {
                 throw "Could not convert decrypted data to string"
             }

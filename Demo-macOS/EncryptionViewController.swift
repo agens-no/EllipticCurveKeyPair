@@ -13,7 +13,6 @@ import EllipticCurveKeyPair
 class EncryptionViewController: NSViewController {
     
     struct Shared {
-        
         static let keypair: EllipticCurveKeyPair.Manager = {
             EllipticCurveKeyPair.logger = { print($0) }
             let publicAccessControl = EllipticCurveKeyPair.AccessControl(protection: kSecAttrAccessibleAlwaysThisDeviceOnly, flags: [])
@@ -23,7 +22,7 @@ class EncryptionViewController: NSViewController {
             let config = EllipticCurveKeyPair.Config(
                 publicLabel: "no.agens.encrypt.public",
                 privateLabel: "no.agens.encrypt.private",
-                operationPrompt: "Decrypt",
+                operationPrompt: "Decrypt message",
                 publicKeyAccessControl: publicAccessControl,
                 privateKeyAccessControl: privateAccessControl,
                 token: .secureEnclaveIfAvailable)
@@ -32,7 +31,6 @@ class EncryptionViewController: NSViewController {
     }
     
     var context: LAContext! = LAContext()
-    var decrypted = true
     
     @IBOutlet weak var publicKeyTextView: NSTextView!
     @IBOutlet weak var encryptDecryptTitleLabel: NSTextFieldCell!
@@ -138,7 +136,7 @@ class EncryptionViewController: NSViewController {
             guard #available(iOS 10.3, *) else {
                 throw "Can not encrypt on this device (must be iOS 10.3)"
             }
-            let result = try Shared.keypair.decrypt(encrypted, authenticationContext: self.context)
+            let result = try Shared.keypair.decrypt(encrypted, context: self.context)
             guard let decrypted = String(data: result, encoding: .utf8) else {
                 throw "Could not convert decrypted data to string"
             }

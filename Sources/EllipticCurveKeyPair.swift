@@ -82,17 +82,17 @@ public enum EllipticCurveKeyPair {
     }
     
     // A stateful and opiniated manager for using the secure enclave and keychain
-    // If there's a problem fetching the key pair this manager will naively just recreate new keypair
+    // If the private or public key is not found this manager will naively just recreate a new keypair
     // If the device doesn't have a Secure Enclave it will store the private key in keychain just like the public key
     //
-    // If the manager is "too smart" in that sense you may use this manager as an example
+    // If you think this manager is "too smart" in that sense you may use this manager as an example
     // and create your own manager
     public final class Manager {
         
-        public let config: Config
+        private let config: Config
+        private let helper: Helper
         private var cachedPublicKey: PublicKey? = nil
         private var cachedPrivateKey: PrivateKey? = nil
-        private let helper: Helper
         
         public init(config: Config) {
             self.config = config
@@ -100,8 +100,7 @@ public enum EllipticCurveKeyPair {
         }
         
         public func deleteKeyPair() throws {
-            cachedPublicKey = nil
-            cachedPrivateKey = nil
+            clearCache()
             try helper.delete()
         }
         
@@ -123,16 +122,22 @@ public enum EllipticCurveKeyPair {
             }
         }
         
-        public func privateKey() throws -> PrivateKey {
+        public func privateKey(context: LAContext? = nil) throws -> PrivateKey {
             do {
+                if cachedPrivateKey?.context !== context {
+                    cachedPrivateKey = nil
+                }
                 if let key = cachedPrivateKey {
                     return key
                 }
-                let key = try helper.getPrivateKey()
+                let key = try helper.getPrivateKey(context: context)
                 cachedPrivateKey = key
                 return key
             } catch EllipticCurveKeyPair.Error.underlying(_, let underlying) where underlying.code == errSecItemNotFound {
-                let keys = try helper.generateKeyPair()
+                if config.publicKeyAccessControl.flags.contains(.privateKeyUsage) == false, (try? helper.getPublicKey()) != nil {
+                    throw Error.probablyAuthenticationError(underlying: underlying)
+                }
+                let keys = try helper.generateKeyPair(context: nil)
                 cachedPublicKey = keys.public
                 cachedPrivateKey = keys.private
                 return keys.private
@@ -141,8 +146,8 @@ public enum EllipticCurveKeyPair {
             }
         }
         
-        public func keys() throws -> (`public`: PublicKey, `private`: PrivateKey) {
-            let privateKey = try self.privateKey()
+        public func keys(context: LAContext? = nil) throws -> (`public`: PublicKey, `private`: PrivateKey) {
+            let privateKey = try self.privateKey(context: context)
             let publicKey = try self.publicKey()
             return (public: publicKey, private: privateKey)
         }
@@ -153,16 +158,15 @@ public enum EllipticCurveKeyPair {
         }
         
         @available(iOS 10, *)
-        public func sign(_ digest: Data, hash: Hash, authenticationContext: LAContext? = nil) throws -> Data {
-            let privateKey = try self.privateKey().accessibleWithAuthenticationContext(authenticationContext)
-            return try helper.sign(digest, privateKey: privateKey, hash: hash)
+        public func sign(_ digest: Data, hash: Hash, context: LAContext? = nil) throws -> Data {
+            return try helper.sign(digest, privateKey: privateKey(context: context), hash: hash)
         }
         
         @available(OSX, unavailable)
         @available(iOS, deprecated: 10.0, message: "This method and extra complexity will be removed when 9.0 is obsolete.")
-        public func signUsingSha256(_ digest: Data, authenticationContext: LAContext? = nil) throws -> Data {
+        public func signUsingSha256(_ digest: Data, context: LAContext? = nil) throws -> Data {
             #if os(iOS)
-                return try helper.signUsingSha256(digest, privateKey: keys().private.accessibleWithAuthenticationContext(authenticationContext))
+                return try helper.signUsingSha256(digest, privateKey: privateKey(context: context))
             #else
                 throw Error.inconcistency(message: "Should be unreachable.")
             #endif
@@ -170,14 +174,14 @@ public enum EllipticCurveKeyPair {
         
         @available(iOS 10, *)
         public func verify(signature: Data, originalDigest: Data, hash: Hash) throws {
-            try helper.verify(signature: signature, digest: originalDigest, publicKey: keys().public, hash: hash)
+            try helper.verify(signature: signature, digest: originalDigest, publicKey: publicKey(), hash: hash)
         }
         
         @available(OSX, unavailable)
         @available(iOS, deprecated: 10.0, message: "This method and extra complexity will be removed when 9.0 is obsolete.")
         public func verifyUsingSha256(signature: Data, originalDigest: Data) throws  {
             #if os(iOS)
-                try helper.verifyUsingSha256(signature: signature, digest: originalDigest, publicKey: keys().public)
+                try helper.verifyUsingSha256(signature: signature, digest: originalDigest, publicKey: publicKey())
             #else
                 throw Error.inconcistency(message: "Should be unreachable.")
             #endif
@@ -185,12 +189,12 @@ public enum EllipticCurveKeyPair {
         
         @available(iOS 10.3, *) // API available at 10.0, but bugs made it unusable on versions lower than 10.3
         public func encrypt(_ digest: Data, hash: Hash = .sha256) throws -> Data {
-            return try helper.encrypt(digest, publicKey: keys().public, hash: hash)
+            return try helper.encrypt(digest, publicKey: publicKey(), hash: hash)
         }
         
         @available(iOS 10.3, *) // API available at 10.0, but bugs made it unusable on versions lower than 10.3
-        public func decrypt(_ encrypted: Data, hash: Hash = .sha256, authenticationContext: LAContext? = nil) throws -> Data {
-            return try helper.decrypt(encrypted, privateKey: keys().private.accessibleWithAuthenticationContext(authenticationContext), hash: hash)
+        public func decrypt(_ encrypted: Data, hash: Hash = .sha256, context: LAContext? = nil) throws -> Data {
+            return try helper.decrypt(encrypted, privateKey: privateKey(), hash: hash)
         }
         
     }
@@ -207,21 +211,23 @@ public enum EllipticCurveKeyPair {
             return try Query.getPublicKey(labeled: config.publicLabel, accessGroup: config.publicKeyAccessGroup)
         }
         
-        public func getPrivateKey() throws -> PrivateKey {
-            return try Query.getPrivateKey(labeled: config.privateLabel, accessGroup: config.privateKeyAccessGroup)
+        public func getPrivateKey(context: LAContext? = nil) throws -> PrivateKey {
+            let context = context ?? LAContext()
+            return try Query.getPrivateKey(labeled: config.privateLabel, accessGroup: config.privateKeyAccessGroup, context: context)
         }
         
-        public func getKeys() throws -> (`public`: PublicKey, `private`: PrivateKey) {
-            let privateKey = try getPrivateKey()
+        public func getKeys(context: LAContext? = nil) throws -> (`public`: PublicKey, `private`: PrivateKey) {
+            let privateKey = try getPrivateKey(context: context)
             let publicKey = try getPublicKey()
             return (public: publicKey, private: privateKey)
         }
         
-        public func generateKeyPair() throws -> (`public`: PublicKey, `private`: PrivateKey) {
+        public func generateKeyPair(context: LAContext? = nil) throws -> (`public`: PublicKey, `private`: PrivateKey) {
             guard config.privateLabel != config.publicLabel else{
                 throw Error.inconcistency(message: "Public key and private key can not have same label")
             }
-            let query = try Query.generateKeyPairQuery(config: config, token: config.token)
+            let context = context ?? LAContext()
+            let query = try Query.generateKeyPairQuery(config: config, token: config.token, context: context)
             var publicOptional, privateOptional: SecKey?
             logger?("SecKeyGeneratePair: \(query)")
             let status = SecKeyGeneratePair(query as CFDictionary, &publicOptional, &privateOptional)
@@ -236,7 +242,7 @@ public enum EllipticCurveKeyPair {
                 throw Error.inconcistency(message: "Created private public key pair successfully, but weren't able to retreive it.")
             }
             let publicKey = PublicKey(publicSec)
-            let privateKey = PrivateKey(privateSec)
+            let privateKey = PrivateKey(privateSec, context: context)
             try Query.forceSavePublicKey(publicKey, label: config.publicLabel)
             return (public: publicKey, private: privateKey)
         }
@@ -373,7 +379,7 @@ public enum EllipticCurveKeyPair {
             return params
         }
         
-        static func privateKeyQuery(labeled: String, accessGroup: String?) -> [String: Any] {
+        static func privateKeyQuery(labeled: String, accessGroup: String?, context: LAContext?) -> [String: Any] {
             var params: [String:Any] = [
                 kSecClass as String: kSecClassKey,
                 kSecAttrKeyClass as String: kSecAttrKeyClassPrivate,
@@ -383,10 +389,13 @@ public enum EllipticCurveKeyPair {
             if let accessGroup = accessGroup {
                 params[kSecAttrAccessGroup as String] = accessGroup
             }
+            if let context = context {
+                params[kSecUseAuthenticationContext as String] = context
+            }
             return params
         }
         
-        static func generateKeyPairQuery(config: Config, token: Token) throws -> [String:Any] {
+        static func generateKeyPairQuery(config: Config, token: Token, context: LAContext? = nil) throws -> [String:Any] {
             
             // private
             var privateKeyParams: [String: Any] = [
@@ -395,11 +404,11 @@ public enum EllipticCurveKeyPair {
                 kSecAttrAccessControl as String: try config.privateKeyAccessControl.underlying(),
                 kSecUseAuthenticationUI as String: kSecUseAuthenticationUIAllow,
                 ]
-            if let operationPrompt = config.operationPrompt {
-                privateKeyParams[kSecUseOperationPrompt as String] = operationPrompt
-            }
             if let privateKeyAccessGroup = config.privateKeyAccessGroup {
                 privateKeyParams[kSecAttrAccessGroup as String] = privateKeyAccessGroup
+            }
+            if let context = context {
+                privateKeyParams[kSecUseAuthenticationContext as String] = context
             }
             
             // public
@@ -429,9 +438,9 @@ public enum EllipticCurveKeyPair {
             return PublicKey(try getKey(query))
         }
         
-        static func getPrivateKey(labeled: String, accessGroup: String?) throws -> PrivateKey {
-            let query = privateKeyQuery(labeled: labeled, accessGroup: accessGroup)
-            return PrivateKey(try getKey(query))
+        static func getPrivateKey(labeled: String, accessGroup: String?, context: LAContext? = nil) throws -> PrivateKey {
+            let query = privateKeyQuery(labeled: labeled, accessGroup: accessGroup, context: context)
+            return PrivateKey(try getKey(query), context: context)
         }
         
         static func deletePublicKey(labeled: String, accessGroup: String?) throws {
@@ -444,7 +453,7 @@ public enum EllipticCurveKeyPair {
         }
         
         static func deletePrivateKey(labeled: String, accessGroup: String?) throws {
-            let query = privateKeyQuery(labeled: labeled, accessGroup: accessGroup) as CFDictionary
+            let query = privateKeyQuery(labeled: labeled, accessGroup: accessGroup, context: nil) as CFDictionary
             logger?("SecItemDelete: \(query)")
             let status = SecItemDelete(query as CFDictionary)
             guard status == errSecSuccess || status == errSecItemNotFound else {
@@ -645,21 +654,14 @@ public enum EllipticCurveKeyPair {
         
         public private(set) var context: LAContext?
         
+        internal init(_ underlying: SecKey, context: LAContext?) {
+            super.init(underlying)
+            self.context = context
+        }
+        
         public func isStoredOnSecureEnclave() throws -> Bool {
             let attribute = try self.attributes()[kSecAttrTokenID as String] as? String
             return attribute == (kSecAttrTokenIDSecureEnclave as String)
-        }
-        
-        public func accessibleWithAuthenticationContext(_ context: LAContext?) throws -> PrivateKey {
-            if self.context === context {
-                return self
-            }
-            var query = Query.privateKeyQuery(labeled: try label(), accessGroup: try accessGroup())
-            query[kSecUseAuthenticationContext as String] = context
-            let underlying = try Query.getKey(query)
-            let keyWithContext = PrivateKey(underlying)
-            keyWithContext.context = context
-            return keyWithContext
         }
     }
     
@@ -709,6 +711,13 @@ public enum EllipticCurveKeyPair {
                 NSLocalizedRecoverySuggestionErrorKey: "See https://www.osstatus.com/search/results?platform=all&framework=all&search=\(osStatus)"
                 ])
             return .underlying(message: message, error: error)
+        }
+        
+        internal static func probablyAuthenticationError(underlying: NSError) -> Error {
+            return Error.authentication(error: .init(_nsError: NSError(domain: LAErrorDomain, code: LAError.authenticationFailed.rawValue, userInfo: [
+                NSLocalizedFailureReasonErrorKey: "Found public key, but couldn't find or access private key. The errSecItemNotFound error is sometimes wrongfully reported when LAContext authentication fails",
+                NSUnderlyingErrorKey: underlying
+                ])))
         }
         
         internal static func fromError(_ error: CFError?, message: String) -> Error {

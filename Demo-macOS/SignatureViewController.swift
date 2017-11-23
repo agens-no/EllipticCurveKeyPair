@@ -80,7 +80,7 @@ class SignatureViewController: NSViewController {
             }
             return digest
         }, thenAsync: { digest in
-            return try Shared.keypair.sign(digest, hash: .sha256, authenticationContext: EllipticCurveKeyPair.Device.hasSecureEnclave ? self.context : nil)
+            return try Shared.keypair.sign(digest, hash: .sha256, context: self.context)
         }, thenOnMain: { digest, signature in
             try Shared.keypair.verify(signature: signature, originalDigest: digest, hash: .sha256)
             try printVerifySignatureInOpenssl(manager: Shared.keypair, signed: signature, digest: digest, hashAlgorithm: "sha256")

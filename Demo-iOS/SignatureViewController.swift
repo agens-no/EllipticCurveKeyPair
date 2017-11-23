@@ -95,7 +95,7 @@ class SignatureViewController: UIViewController {
             }
             return digest
         }, thenAsync: { digest in
-            return try Shared.keypair.signUsingSha256(digest, authenticationContext: self.context)
+            return try Shared.keypair.signUsingSha256(digest, context: self.context)
         }, thenOnMain: { digest, signature in
             self.signatureTextView.text = signature.base64EncodedString()
             try Shared.keypair.verifyUsingSha256(signature: signature, originalDigest: digest)
