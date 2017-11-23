@@ -107,7 +107,7 @@ let privateAccessControl = EllipticCurveKeyPair.AccessControl(protection: kSecAt
 }())
 ```
 
-In that case you need to remember to set `token` variable in `Config` object to `.secureEnclaveIfAvailable`. 
+In that case you need to remember to set `token` variable in `Config` object to `.secureEnclaveIfAvailable`.
 
 ### Getting the public key in DER format
 
@@ -129,44 +129,42 @@ do {
     // handle error
 }
 ```
-See demo app for working example
 
 ### Signing
 
 ```swift
 do {
     let digest = "some text to sign".data(using: .utf8)!
-    let signature = try KeyPair.manager.sign(digest, algorithm: .sha256)
+    let signature = try KeyPair.manager.sign(digest, hash: .sha256)
 } catch {
     // handle error
 }
 ```
-See demo app for working example
+You may also pass a LAContext object when signing
 
 ### Encrypting
 
 ```swift
 do {
     let digest = "some text to encrypt".data(using: .utf8)!
-    let encrypted = try KeyPair.manager.encrypt(digest, algorithm: .sha256)
+    let encrypted = try KeyPair.manager.encrypt(digest, hash: .sha256)
 } catch {
     // handle error
 }
 ```
-See demo app for working example
 
 ### Decrypting
 
 ```swift
 do {
     let encrypted = ...
-    let decrypted = try KeyPair.manager.decrypt(encrypted, algorithm: .sha256)
+    let decrypted = try KeyPair.manager.decrypt(encrypted, hash: .sha256)
     let decryptedString = String(data: decrypted, encoding: .utf8)
 } catch {
     // handle error
 }
 ```
-See demo app for working example
+You may also pass a LAContext object when decrypting
 
 ## Error handling
 
