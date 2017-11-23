@@ -106,10 +106,10 @@ public enum EllipticCurveKeyPair {
         }
         
         public func publicKey() throws -> PublicKey {
-            if let key = cachedPublicKey {
-                return key
-            }
             do {
+                if let key = cachedPublicKey {
+                    return key
+                }
                 let key = try helper.getPublicKey()
                 cachedPublicKey = key
                 return key
@@ -124,10 +124,10 @@ public enum EllipticCurveKeyPair {
         }
         
         public func privateKey() throws -> PrivateKey {
-            if let key = cachedPrivateKey {
-                return key
-            }
             do {
+                if let key = cachedPrivateKey {
+                    return key
+                }
                 let key = try helper.getPrivateKey()
                 cachedPrivateKey = key
                 return key
