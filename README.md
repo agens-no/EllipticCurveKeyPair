@@ -16,7 +16,7 @@ Sign, verify, encrypt and decrypt using the Secure Enclave on iOS and MacOS.
 - create a private public keypair
 - store the private key on the secure enclave
 - store the public key in keychain
-- each time you use the private key the user will be prompted with touch id or device id in order to use it
+- each time you use the private key the user will be prompted with FaceID, TouchID, device pass code or application password
 - export the public key as X.509 DER with proper ASN.1 header / structure
 - verify the signature with openssl in command line easily
 
