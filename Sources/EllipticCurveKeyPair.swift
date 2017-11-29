@@ -448,7 +448,7 @@ public enum EllipticCurveKeyPair {
             logger?("SecItemDelete: \(query)")
             let status = SecItemDelete(query as CFDictionary)
             guard status == errSecSuccess || status == errSecItemNotFound else {
-                throw Error.osStatus(message: "Could not delete private key.", osStatus: status)
+                throw Error.osStatus(message: "Could not delete public key.", osStatus: status)
             }
         }
         
