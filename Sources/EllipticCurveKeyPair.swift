@@ -213,7 +213,7 @@ public enum EllipticCurveKeyPair {
         
         public func getPrivateKey(context: LAContext? = nil) throws -> PrivateKey {
             let context = context ?? LAContext()
-            return try Query.getPrivateKey(labeled: config.privateLabel, accessGroup: config.privateKeyAccessGroup, context: context)
+            return try Query.getPrivateKey(labeled: config.privateLabel, accessGroup: config.privateKeyAccessGroup, prompt: config.operationPrompt, context: context)
         }
         
         public func getKeys(context: LAContext? = nil) throws -> (`public`: PublicKey, `private`: PrivateKey) {
@@ -379,7 +379,7 @@ public enum EllipticCurveKeyPair {
             return params
         }
         
-        static func privateKeyQuery(labeled: String, accessGroup: String?, context: LAContext?) -> [String: Any] {
+        static func privateKeyQuery(labeled: String, accessGroup: String?, prompt: String?, context: LAContext?) -> [String: Any] {
             var params: [String:Any] = [
                 kSecClass as String: kSecClassKey,
                 kSecAttrKeyClass as String: kSecAttrKeyClassPrivate,
@@ -388,6 +388,9 @@ public enum EllipticCurveKeyPair {
                 ]
             if let accessGroup = accessGroup {
                 params[kSecAttrAccessGroup as String] = accessGroup
+            }
+            if let prompt = prompt {
+                params[kSecUseOperationPrompt as String] = prompt
             }
             if let context = context {
                 params[kSecUseAuthenticationContext as String] = context
@@ -438,8 +441,8 @@ public enum EllipticCurveKeyPair {
             return PublicKey(try getKey(query))
         }
         
-        static func getPrivateKey(labeled: String, accessGroup: String?, context: LAContext? = nil) throws -> PrivateKey {
-            let query = privateKeyQuery(labeled: labeled, accessGroup: accessGroup, context: context)
+        static func getPrivateKey(labeled: String, accessGroup: String?, prompt: String?, context: LAContext? = nil) throws -> PrivateKey {
+            let query = privateKeyQuery(labeled: labeled, accessGroup: accessGroup, prompt: prompt, context: context)
             return PrivateKey(try getKey(query), context: context)
         }
         
@@ -453,7 +456,7 @@ public enum EllipticCurveKeyPair {
         }
         
         static func deletePrivateKey(labeled: String, accessGroup: String?) throws {
-            let query = privateKeyQuery(labeled: labeled, accessGroup: accessGroup, context: nil) as CFDictionary
+            let query = privateKeyQuery(labeled: labeled, accessGroup: accessGroup, prompt: nil, context: nil) as CFDictionary
             logger?("SecItemDelete: \(query)")
             let status = SecItemDelete(query as CFDictionary)
             guard status == errSecSuccess || status == errSecItemNotFound else {
