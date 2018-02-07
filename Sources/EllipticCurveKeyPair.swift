@@ -400,11 +400,10 @@ public enum EllipticCurveKeyPair {
         
         static func generateKeyPairQuery(config: Config, token: Token, context: LAContext? = nil) throws -> [String:Any] {
             
-            // private
+            /* ========= private ========= */
             var privateKeyParams: [String: Any] = [
                 kSecAttrLabel as String: config.privateLabel,
                 kSecAttrIsPermanent as String: true,
-                kSecAttrAccessControl as String: try config.privateKeyAccessControl.underlying(),
                 kSecUseAuthenticationUI as String: kSecUseAuthenticationUIAllow,
                 ]
             if let privateKeyAccessGroup = config.privateKeyAccessGroup {
@@ -414,16 +413,29 @@ public enum EllipticCurveKeyPair {
                 privateKeyParams[kSecUseAuthenticationContext as String] = context
             }
             
-            // public
+            // On iOS 11 and lower: access control with empty flags doesn't work
+            if config.privateKeyAccessControl.flags.isEmpty {
+                privateKeyParams[kSecAttrAccessControl as String] = try config.privateKeyAccessControl.underlying()
+            } else {
+                privateKeyParams[kSecAttrAccessible as String] = config.privateKeyAccessControl.protection
+            }
+            
+            /* ========= public ========= */
             var publicKeyParams: [String: Any] = [
                 kSecAttrLabel as String: config.publicLabel,
-                kSecAttrAccessControl as String: try config.publicKeyAccessControl.underlying(),
                 ]
             if let publicKeyAccessGroup = config.publicKeyAccessGroup {
                 publicKeyParams[kSecAttrAccessGroup as String] = publicKeyAccessGroup
             }
             
-            // combined
+            // On iOS 11 and lower: access control with empty flags doesn't work
+            if config.publicKeyAccessControl.flags.isEmpty {
+                publicKeyParams[kSecAttrAccessControl as String] = try config.publicKeyAccessControl.underlying()
+            } else {
+                publicKeyParams[kSecAttrAccessible as String] = config.publicKeyAccessControl.protection
+            }
+            
+            /* ========= combined ========= */
             var params: [String: Any] = [
                 kSecAttrKeyType as String: Constants.attrKeyTypeEllipticCurve,
                 kSecPrivateKeyAttrs as String: privateKeyParams,
@@ -682,6 +694,13 @@ public enum EllipticCurveKeyPair {
         }
         
         public func underlying() throws -> SecAccessControl {
+            if flags.contains(.privateKeyUsage) {
+                let flagsWithOnlyPrivateKeyUsage: SecAccessControlCreateFlags = [.privateKeyUsage]
+                guard flags != flagsWithOnlyPrivateKeyUsage else {
+                    throw EllipticCurveKeyPair.Error.inconcistency(message: "Couldn't create access control flag. Keychain chokes if you try to create access control with only [.privateKeyUsage] on devices older than iOS 11 and macOS 10.13.x")
+                }
+            }
+            
             var error: Unmanaged<CFError>?
             let result = SecAccessControlCreateWithFlags(kCFAllocatorDefault, protection, flags, &error)
             guard let accessControl = result else {
