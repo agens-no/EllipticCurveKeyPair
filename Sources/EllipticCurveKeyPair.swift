@@ -414,7 +414,7 @@ public enum EllipticCurveKeyPair {
             }
             
             // On iOS 11 and lower: access control with empty flags doesn't work
-            if config.privateKeyAccessControl.flags.isEmpty {
+            if !config.privateKeyAccessControl.flags.isEmpty {
                 privateKeyParams[kSecAttrAccessControl as String] = try config.privateKeyAccessControl.underlying()
             } else {
                 privateKeyParams[kSecAttrAccessible as String] = config.privateKeyAccessControl.protection
@@ -429,7 +429,7 @@ public enum EllipticCurveKeyPair {
             }
             
             // On iOS 11 and lower: access control with empty flags doesn't work
-            if config.publicKeyAccessControl.flags.isEmpty {
+            if !config.publicKeyAccessControl.flags.isEmpty {
                 publicKeyParams[kSecAttrAccessControl as String] = try config.publicKeyAccessControl.underlying()
             } else {
                 publicKeyParams[kSecAttrAccessible as String] = config.publicKeyAccessControl.protection
