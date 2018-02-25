@@ -92,8 +92,8 @@ struct KeyPair {
             publicLabel: "payment.sign.public",
             privateLabel: "payment.sign.private",
             operationPrompt: "Confirm payment",
-            publicKeyAccessControl: accessControlPublic,
-            privateKeyAccessControl: accessControlPrivate)
+            publicKeyAccessControl: publicAccessControl,
+            privateKeyAccessControl: privateAccessControl,
             token: .secureEnclave)
         return EllipticCurveKeyPair.Manager(config: config)
     }()
