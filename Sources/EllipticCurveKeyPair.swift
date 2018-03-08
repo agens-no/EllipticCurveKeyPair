@@ -194,7 +194,7 @@ public enum EllipticCurveKeyPair {
         
         @available(iOS 10.3, *) // API available at 10.0, but bugs made it unusable on versions lower than 10.3
         public func decrypt(_ encrypted: Data, hash: Hash = .sha256, context: LAContext? = nil) throws -> Data {
-            return try helper.decrypt(encrypted, privateKey: privateKey(), hash: hash)
+            return try helper.decrypt(encrypted, privateKey: privateKey(context: context), hash: hash)
         }
         
     }
