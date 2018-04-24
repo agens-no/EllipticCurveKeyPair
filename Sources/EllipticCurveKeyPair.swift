@@ -795,9 +795,9 @@ public enum EllipticCurveKeyPair {
             case .sha224:
                 return SecKeyAlgorithm.eciesEncryptionStandardX963SHA224AESGCM
             case .sha256:
-                return SecKeyAlgorithm.eciesEncryptionStandardX963SHA384AESGCM
-            case .sha384:
                 return SecKeyAlgorithm.eciesEncryptionStandardX963SHA256AESGCM
+            case .sha384:
+                return SecKeyAlgorithm.eciesEncryptionStandardX963SHA384AESGCM
             case .sha512:
                 return SecKeyAlgorithm.eciesEncryptionStandardX963SHA512AESGCM
             }
