@@ -57,13 +57,13 @@ There are lots of great possibilities with Secure Enclave. Here are some example
 ### Encrypting
 
 1. Encrypt a message using the public key
-1. Decrypt the message using the private key – only accessible with touch id / device pin
+1. Decrypt the message using the private key – only accessible with FaceID / TouchID / device pin
 
 Only available on iOS 10 and above
 
 ### Signing
 
-1. Sign some data received by server using the private key – only accessible with touch id / device pin
+1. Sign some data received by server using the private key – only accessible with FaceID / TouchID / device pin
 1. Verify that the signature is valid using the public key
 
 A use case could be
@@ -152,6 +152,12 @@ do {
     // handle error
 }
 ```
+
+### Encrypting on a different device/OS/platform
+
+You can also encrypt on a different device/OS/platform using the public key. If you want to know all the details about how to encrypt in a format the Secure Enclave understands, then you need definitely need to read this great write up
+
+https://darthnull.org/security/2018/05/31/secure-enclave-ecies/
 
 ### Decrypting
 
