@@ -155,7 +155,7 @@ do {
 
 ### Encrypting on a different device/OS/platform
 
-You can also encrypt on a different device/OS/platform using the public key. If you want to know all the details about how to encrypt in a format the Secure Enclave understands, then you need definitely need to read this great write up
+You can also encrypt on a different device/OS/platform using the public key. If you want to know all the details about how to encrypt in a format the Secure Enclave understands, then you need definitely need to read this great write up by [@dschuetz](https://github.com/dschuetz)!
 
 https://darthnull.org/security/2018/05/31/secure-enclave-ecies/
 
@@ -266,6 +266,8 @@ He shared som [very valuable insights](https://forums.developer.apple.com/messag
 
 The `SHA256` class (originally `SHA2.swift`) is found in the invaluable [CryptoSwift](https://github.com/krzyzanowskim/CryptoSwift) library by [Marcin Krzyżanowski](http://www.krzyzanowskim.com/). The class has been heavily altered in order to strip it down to its bare minimum for what we needed in this project.
 
+
+
 ## FAQ
 
 **Why am I not being prompted with touch id / device pin on simulator?**  
@@ -276,6 +278,7 @@ The `SHA256` class (originally `SHA2.swift`) is found in the invaluable [CryptoS
 
 **Why is it wrapped in an enum?**
 > I try to balance drag-and-drop the files you need into xcode and supporting dependency managers like carthage and cocoapods at the same time. If you have better ideas or don't agree with this decission I'm happy to discuss alternatives :)
+
 
 
 ## Feedback
