@@ -72,7 +72,7 @@ A use case could be
 1. Server sends a push with a session token that should be signed
 1. On device we sign the session token using the private key - prompting the user to confirm with touch id
 1. The signed token is then sent to server
-1. Server already is in posession of the public key and verifies the signature using the public key
+1. Server already is in possession of the public key and verifies the signature using the public key
 1. Server is now confident that user signed this agreement with touch id
 
 
@@ -188,7 +188,7 @@ do {
 } catch EllipticCurveKeyPair.Error.authentication(let authenticationError) where authenticationError.code == .userCancel {
     print("User cancelled/dismissed authentication dialog")
 } catch {
-    print("Some other error occured. Error \(error)")
+    print("Some other error occurred. Error \(error)")
 }
 ```
 
@@ -199,7 +199,7 @@ if case let EllipticCurveKeyPair.Error.underlying(_, underlying) = error, underl
 } else if case let EllipticCurveKeyPair.Error.authentication(authenticationError), authenticationError.code == .userCancel {
   print("User cancelled/dismissed authentication dialog")
 } else {
-  print("Some other error occured. Error \(error)")
+  print("Some other error occurred. Error \(error)")
 }
 ```
 
@@ -277,7 +277,7 @@ The `SHA256` class (originally `SHA2.swift`) is found in the invaluable [CryptoS
 > Check out this video on [WWDC 2015](https://developer.apple.com/videos/play/wwdc2015/706/) about Security in general or [click here](https://developer.apple.com/videos/play/wwdc2015/706/?time=2069) to skip right to the section about the Secure Enclave.
 
 **Why is it wrapped in an enum?**
-> I try to balance drag-and-drop the files you need into xcode and supporting dependency managers like carthage and cocoapods at the same time. If you have better ideas or don't agree with this decission I'm happy to discuss alternatives :)
+> I try to balance drag-and-drop the files you need into xcode and supporting dependency managers like carthage and cocoapods at the same time. If you have better ideas or don't agree with this decision I'm happy to discuss alternatives :)
 
 
 
