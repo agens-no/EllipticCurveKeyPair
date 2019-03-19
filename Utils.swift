@@ -25,11 +25,21 @@
 import Foundation
 import EllipticCurveKeyPair
 
-extension String: Error {}
+typealias EC = EllipticCurveKeyPair
 
-func printVerifySignatureInOpenssl(manager: EllipticCurveKeyPair.Manager, signed: Data, digest: Data, hashAlgorithm: String) throws {
+struct GenericError: Error {
+    let message: String
+}
+
+extension Data {
+    func toHexString() -> String {
+        return map { String(format: "%02hhx", $0) }.joined()
+    }
+}
+
+func printVerifySignatureInOpenssl(publicKey: EC.PublicKey, signed: Data, digest: Data, hashAlgorithm: String) throws {
     assert(hashAlgorithm.hasPrefix("sha"))
-    var publicKeyBase = (try? manager.publicKey().data().DER.base64EncodedString()) ?? "error fetching public key"
+    var publicKeyBase = (try publicKey.export().DER().base64EncodedString())
     publicKeyBase.insert("\n", at: publicKeyBase.index(publicKeyBase.startIndex, offsetBy: 64))
     
     var shell: [String] = []

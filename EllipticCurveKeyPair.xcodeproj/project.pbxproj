@@ -18,8 +18,7 @@
 		A35A3FE61FB9CBE80093C12B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A35A3FE51FB9CBE80093C12B /* Assets.xcassets */; };
 		A35A3FE91FB9CBE80093C12B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A35A3FE71FB9CBE80093C12B /* Main.storyboard */; };
 		A35A3FF61FB9CC1B0093C12B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35A3FF51FB9CC1B0093C12B /* AppDelegate.swift */; };
-		A35A3FF81FB9CC1B0093C12B /* EncryptionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35A3FF71FB9CC1B0093C12B /* EncryptionViewController.swift */; };
-		A35A3FFA1FB9CC1B0093C12B /* SignatureViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35A3FF91FB9CC1B0093C12B /* SignatureViewController.swift */; };
+		A35A3FFA1FB9CC1B0093C12B /* SignViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35A3FF91FB9CC1B0093C12B /* SignViewController.swift */; };
 		A35A3FFD1FB9CC1B0093C12B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A35A3FFB1FB9CC1B0093C12B /* Main.storyboard */; };
 		A35A3FFF1FB9CC1B0093C12B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A35A3FFE1FB9CC1B0093C12B /* Assets.xcassets */; };
 		A35A40021FB9CC1B0093C12B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A35A40001FB9CC1B0093C12B /* LaunchScreen.storyboard */; };
@@ -32,6 +31,9 @@
 		A381D7A91F98A5160069D88C /* SHA256.swift in Sources */ = {isa = PBXBuildFile; fileRef = A381D7A61F98A5160069D88C /* SHA256.swift */; };
 		A381D7B11F98A58B0069D88C /* SHA256Test.swift in Sources */ = {isa = PBXBuildFile; fileRef = A381D7AF1F98A58B0069D88C /* SHA256Test.swift */; };
 		A381D7B21F98A58B0069D88C /* SHA256Test.swift in Sources */ = {isa = PBXBuildFile; fileRef = A381D7AF1F98A58B0069D88C /* SHA256Test.swift */; };
+		A394C13C2241240400DFEC61 /* EncryptViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A394C13B2241240400DFEC61 /* EncryptViewController.swift */; };
+		A394C13E224125BE00DFEC61 /* DecryptViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A394C13D224125BE00DFEC61 /* DecryptViewController.swift */; };
+		A3AEE42C223BD2BC006118EA /* VerifyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3AEE42B223BD2BB006118EA /* VerifyViewController.swift */; };
 		A3FD3A961FBC54A900747A5F /* SignatureViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3FD3A951FBC54A900747A5F /* SignatureViewController.swift */; };
 		A3FD3A981FBC54B700747A5F /* EncryptionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3FD3A971FBC54B700747A5F /* EncryptionViewController.swift */; };
 		DD7502881C68FEDE006590AF /* EllipticCurveKeyPair.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52D6DA0F1BF000BD002C0205 /* EllipticCurveKeyPair.framework */; };
@@ -58,6 +60,20 @@
 			proxyType = 1;
 			remoteGlobalIDString = 52D6DA0E1BF000BD002C0205;
 			remoteInfo = "EllipticCurveKeyPair-macOS";
+		};
+		A3AEE426223BCC5D006118EA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 52D6D9731BEFF229002C0205 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A35A3FF21FB9CC1A0093C12B;
+			remoteInfo = "Demo-iOS";
+		};
+		A3AEE428223BCC5F006118EA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 52D6D9731BEFF229002C0205 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A35A3FDE1FB9CBE70093C12B;
+			remoteInfo = "Demo-macOS";
 		};
 		DD7502801C68FCFC006590AF /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -108,8 +124,7 @@
 		A35A3FEB1FB9CBE80093C12B /* Demo_macOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Demo_macOS.entitlements; sourceTree = "<group>"; };
 		A35A3FF31FB9CC1A0093C12B /* Demo-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Demo-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A35A3FF51FB9CC1B0093C12B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		A35A3FF71FB9CC1B0093C12B /* EncryptionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncryptionViewController.swift; sourceTree = "<group>"; };
-		A35A3FF91FB9CC1B0093C12B /* SignatureViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignatureViewController.swift; sourceTree = "<group>"; };
+		A35A3FF91FB9CC1B0093C12B /* SignViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignViewController.swift; sourceTree = "<group>"; };
 		A35A3FFC1FB9CC1B0093C12B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		A35A3FFE1FB9CC1B0093C12B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A35A40011FB9CC1B0093C12B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -117,6 +132,9 @@
 		A35A40111FB9CC8D0093C12B /* Utils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
 		A381D7A61F98A5160069D88C /* SHA256.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SHA256.swift; sourceTree = "<group>"; };
 		A381D7AF1F98A58B0069D88C /* SHA256Test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SHA256Test.swift; sourceTree = "<group>"; };
+		A394C13B2241240400DFEC61 /* EncryptViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncryptViewController.swift; sourceTree = "<group>"; };
+		A394C13D224125BE00DFEC61 /* DecryptViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DecryptViewController.swift; sourceTree = "<group>"; };
+		A3AEE42B223BD2BB006118EA /* VerifyViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VerifyViewController.swift; sourceTree = "<group>"; };
 		A3FD3A951FBC54A900747A5F /* SignatureViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignatureViewController.swift; sourceTree = "<group>"; };
 		A3FD3A971FBC54B700747A5F /* EncryptionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncryptionViewController.swift; sourceTree = "<group>"; };
 		AD2FAA261CD0B6D800659CF4 /* EllipticCurveKeyPair.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = EllipticCurveKeyPair.plist; sourceTree = "<group>"; };
@@ -247,8 +265,10 @@
 			isa = PBXGroup;
 			children = (
 				A35A3FF51FB9CC1B0093C12B /* AppDelegate.swift */,
-				A35A3FF91FB9CC1B0093C12B /* SignatureViewController.swift */,
-				A35A3FF71FB9CC1B0093C12B /* EncryptionViewController.swift */,
+				A35A3FF91FB9CC1B0093C12B /* SignViewController.swift */,
+				A3AEE42B223BD2BB006118EA /* VerifyViewController.swift */,
+				A394C13B2241240400DFEC61 /* EncryptViewController.swift */,
+				A394C13D224125BE00DFEC61 /* DecryptViewController.swift */,
 				A35A3FFB1FB9CC1B0093C12B /* Main.storyboard */,
 				A35A3FFE1FB9CC1B0093C12B /* Assets.xcassets */,
 				A35A40001FB9CC1B0093C12B /* LaunchScreen.storyboard */,
@@ -323,6 +343,7 @@
 			);
 			dependencies = (
 				52D6D9891BEFF229002C0205 /* PBXTargetDependency */,
+				A3AEE427223BCC5D006118EA /* PBXTargetDependency */,
 			);
 			name = "EllipticCurveKeyPair-iOS Tests";
 			productName = EllipticCurveKeyPairTests;
@@ -397,6 +418,7 @@
 			);
 			dependencies = (
 				DD7502811C68FCFC006590AF /* PBXTargetDependency */,
+				A3AEE429223BCC5F006118EA /* PBXTargetDependency */,
 			);
 			name = "EllipticCurveKeyPair-macOS Tests";
 			productName = "EllipticCurveKeyPair-OS Tests";
@@ -421,6 +443,7 @@
 					52D6D9851BEFF229002C0205 = {
 						CreatedOnToolsVersion = 7.1;
 						LastSwiftMigration = 0800;
+						TestTargetID = A35A3FF21FB9CC1A0093C12B;
 					};
 					52D6DA0E1BF000BD002C0205 = {
 						CreatedOnToolsVersion = 7.1;
@@ -445,6 +468,7 @@
 					DD7502791C68FCFC006590AF = {
 						CreatedOnToolsVersion = 7.2.1;
 						LastSwiftMigration = 0800;
+						TestTargetID = A35A3FDE1FB9CBE70093C12B;
 					};
 				};
 			};
@@ -565,9 +589,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A35A3FFA1FB9CC1B0093C12B /* SignatureViewController.swift in Sources */,
+				A394C13C2241240400DFEC61 /* EncryptViewController.swift in Sources */,
+				A35A3FFA1FB9CC1B0093C12B /* SignViewController.swift in Sources */,
+				A394C13E224125BE00DFEC61 /* DecryptViewController.swift in Sources */,
+				A3AEE42C223BD2BC006118EA /* VerifyViewController.swift in Sources */,
 				A35A3FF61FB9CC1B0093C12B /* AppDelegate.swift in Sources */,
-				A35A3FF81FB9CC1B0093C12B /* EncryptionViewController.swift in Sources */,
 				A35A40121FB9CC8D0093C12B /* Utils.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -598,6 +624,16 @@
 			isa = PBXTargetDependency;
 			target = 52D6DA0E1BF000BD002C0205 /* EllipticCurveKeyPair-macOS */;
 			targetProxy = A35A400E1FB9CC660093C12B /* PBXContainerItemProxy */;
+		};
+		A3AEE427223BCC5D006118EA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A35A3FF21FB9CC1A0093C12B /* Demo-iOS */;
+			targetProxy = A3AEE426223BCC5D006118EA /* PBXContainerItemProxy */;
+		};
+		A3AEE429223BCC5F006118EA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A35A3FDE1FB9CBE70093C12B /* Demo-macOS */;
+			targetProxy = A3AEE428223BCC5F006118EA /* PBXContainerItemProxy */;
 		};
 		DD7502811C68FCFC006590AF /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -673,7 +709,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -718,7 +754,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 3.0;
@@ -743,7 +779,7 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				INFOPLIST_FILE = Configs/EllipticCurveKeyPair.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.EllipticCurveKeyPair.EllipticCurveKeyPair-iOS";
@@ -769,7 +805,7 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				INFOPLIST_FILE = Configs/EllipticCurveKeyPair.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.EllipticCurveKeyPair.EllipticCurveKeyPair-iOS";
 				PRODUCT_NAME = EllipticCurveKeyPair;
@@ -790,6 +826,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 3.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Demo-iOS.app/Demo-iOS";
 			};
 			name = Debug;
 		};
@@ -803,6 +840,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_VERSION = 3.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Demo-iOS.app/Demo-iOS";
 			};
 			name = Release;
 		};
@@ -821,7 +859,7 @@
 				INFOPLIST_FILE = Configs/EllipticCurveKeyPair.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.12.1;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.EllipticCurveKeyPair.EllipticCurveKeyPair-macOS";
 				PRODUCT_NAME = EllipticCurveKeyPair;
 				SDKROOT = macosx;
@@ -845,7 +883,7 @@
 				INFOPLIST_FILE = Configs/EllipticCurveKeyPair.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.12.1;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.EllipticCurveKeyPair.EllipticCurveKeyPair-macOS";
 				PRODUCT_NAME = EllipticCurveKeyPair;
 				SDKROOT = macosx;
@@ -879,7 +917,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = "Demo-macOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.12.2;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_BUNDLE_IDENTIFIER = no.agens.demo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -912,7 +950,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = "Demo-macOS/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.12.2;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_BUNDLE_IDENTIFIER = no.agens.demo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -942,7 +980,7 @@
 				DEVELOPMENT_TEAM = 33KVL2LY9J;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = "Demo-iOS/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "no.agens.Demo-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -973,7 +1011,7 @@
 				DEVELOPMENT_TEAM = 33KVL2LY9J;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = "Demo-iOS/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "no.agens.Demo-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -995,6 +1033,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 3.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Demo-macOS.app/Contents/MacOS/Demo-macOS";
 			};
 			name = Debug;
 		};
@@ -1011,6 +1050,7 @@
 				SDKROOT = macosx;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_VERSION = 3.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Demo-macOS.app/Contents/MacOS/Demo-macOS";
 			};
 			name = Release;
 		};
