@@ -74,7 +74,6 @@ extension EllipticCurveKeyPair {
         
         // Create random permanent key
         public static func createRandom(label: String, accessGroup: String? = nil, keyType: KeyType, accessControl: AccessControl, token: Token) throws -> PrivateKey {
-            var error: Unmanaged<CFError>?
             var params: [CFString:Any] = [:]
             params[kSecAttrLabel] = label
             params[kSecAttrAccessGroup] = accessGroup
@@ -86,6 +85,7 @@ extension EllipticCurveKeyPair {
             if token == .secureEnclave {
                 params[kSecAttrTokenID] = kSecAttrTokenIDSecureEnclave
             }
+            var error: Unmanaged<CFError>?
             guard let privateSec = SecKeyCreateRandomKey(params as CFDictionary, &error) else {
                 throw Error.fromError(error?.takeRetainedValue(), message: "Could not create private key.")
             }

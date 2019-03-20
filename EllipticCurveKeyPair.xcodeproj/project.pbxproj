@@ -10,8 +10,8 @@
 		52D6D9871BEFF229002C0205 /* EllipticCurveKeyPair.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52D6D97C1BEFF229002C0205 /* EllipticCurveKeyPair.framework */; };
 		8933C7851EB5B820000D00A4 /* EllipticCurveKeyPair.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8933C7841EB5B820000D00A4 /* EllipticCurveKeyPair.swift */; };
 		8933C7861EB5B820000D00A4 /* EllipticCurveKeyPair.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8933C7841EB5B820000D00A4 /* EllipticCurveKeyPair.swift */; };
-		8933C78F1EB5B82C000D00A4 /* EllipticCurveKeyPairTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8933C7891EB5B82A000D00A4 /* EllipticCurveKeyPairTests.swift */; };
-		8933C7901EB5B82D000D00A4 /* EllipticCurveKeyPairTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8933C7891EB5B82A000D00A4 /* EllipticCurveKeyPairTests.swift */; };
+		8933C78F1EB5B82C000D00A4 /* PrivateKeyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8933C7891EB5B82A000D00A4 /* PrivateKeyTests.swift */; };
+		8933C7901EB5B82D000D00A4 /* PrivateKeyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8933C7891EB5B82A000D00A4 /* PrivateKeyTests.swift */; };
 		A309130D1FBB069A003A9046 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35A40111FB9CC8D0093C12B /* Utils.swift */; };
 		A35A3FE21FB9CBE80093C12B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35A3FE11FB9CBE80093C12B /* AppDelegate.swift */; };
 		A35A3FE41FB9CBE80093C12B /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A35A3FE31FB9CBE80093C12B /* ViewController.swift */; };
@@ -114,7 +114,7 @@
 		52D6D9861BEFF229002C0205 /* EllipticCurveKeyPair-iOS Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "EllipticCurveKeyPair-iOS Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		52D6DA0F1BF000BD002C0205 /* EllipticCurveKeyPair.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = EllipticCurveKeyPair.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8933C7841EB5B820000D00A4 /* EllipticCurveKeyPair.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EllipticCurveKeyPair.swift; sourceTree = "<group>"; };
-		8933C7891EB5B82A000D00A4 /* EllipticCurveKeyPairTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EllipticCurveKeyPairTests.swift; sourceTree = "<group>"; };
+		8933C7891EB5B82A000D00A4 /* PrivateKeyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrivateKeyTests.swift; sourceTree = "<group>"; };
 		A35A3FDF1FB9CBE70093C12B /* Demo-macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Demo-macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A35A3FE11FB9CBE80093C12B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A35A3FE31FB9CBE80093C12B /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -239,7 +239,7 @@
 		8933C7831EB5B7EB000D00A4 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
-				8933C7891EB5B82A000D00A4 /* EllipticCurveKeyPairTests.swift */,
+				8933C7891EB5B82A000D00A4 /* PrivateKeyTests.swift */,
 				A381D7AF1F98A58B0069D88C /* SHA256Test.swift */,
 			);
 			name = Tests;
@@ -560,7 +560,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A381D7B21F98A58B0069D88C /* SHA256Test.swift in Sources */,
-				8933C7901EB5B82D000D00A4 /* EllipticCurveKeyPairTests.swift in Sources */,
+				8933C7901EB5B82D000D00A4 /* PrivateKeyTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -603,7 +603,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A381D7B11F98A58B0069D88C /* SHA256Test.swift in Sources */,
-				8933C78F1EB5B82C000D00A4 /* EllipticCurveKeyPairTests.swift in Sources */,
+				8933C78F1EB5B82C000D00A4 /* PrivateKeyTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

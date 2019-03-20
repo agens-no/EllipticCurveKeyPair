@@ -10,7 +10,7 @@ import Foundation
 import XCTest
 import EllipticCurveKeyPair
 
-class EllipticCurveKeyPairTests: XCTestCase {
+class PrivateKeyTests: XCTestCase {
     
     typealias EC = EllipticCurveKeyPair
     
@@ -23,50 +23,60 @@ class EllipticCurveKeyPairTests: XCTestCase {
     func testCreateLoadAndDelete() {
         
         let label = randomLabel()
-        let token = EC.Token.keychain
         let accessControl = EC.AccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: [.userPresence, .privateKeyUsage])
         
         do { // Create
-            let _ = try EC.PrivateKey.createRandom(label: label, keyType: .secp256r1, accessControl: accessControl, token: token)
-        } catch {
-            XCTFail("\(error)")
-        }
-        
-        do { // Load
-            let _ = try EC.PrivateKey.load(label: label, keyType: .secp256r1, token: token)
-        } catch {
-            XCTFail("\(error)")
-        }
-        
-        do { // Delete
+            let _ = try EC.PrivateKey.createRandom(label: label, keyType: .secp256r1, accessControl: accessControl, token: .keychain)
+            let _ = try EC.PrivateKey.load(label: label, keyType: .secp256r1, token: .keychain)
             try EC.PrivateKey.delete(label: label, keyType: .secp256r1)
         } catch {
             XCTFail("\(error)")
         }
     }
     
-    func testDoubleCreate() {
+    func testDoubleCreateGivesError() {
         
-        let label = "no.agens.sign.public"
-        let token = EC.Token.keychain
+        let label = randomLabel()
         let accessControl = EC.AccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: [.userPresence, .privateKeyUsage])
         
         do { // Create
-            let _ = try EC.PrivateKey.createRandom(label: label, keyType: .secp256r1, accessControl: accessControl, token: token)
+            let _ = try EC.PrivateKey.createRandom(label: label, keyType: .secp256r1, accessControl: accessControl, token: .keychain)
         } catch {
             XCTFail("\(error)")
         }
         
-        do { // Load
-            let _ = try EC.PrivateKey.load(label: label, keyType: .secp256r1, token: token)
+        do { // Create again
+            let _ = try EC.PrivateKey.createRandom(label: label, keyType: .secp256r1, accessControl: accessControl, token: .keychain)
+            XCTFail("Expected error, but got key")
+        } catch let EC.Error.underlying(_, error) {
+            XCTAssertEqual(error.domain, NSOSStatusErrorDomain)
+            XCTAssertEqual(OSStatus(error.code), errSecDuplicateItem)
         } catch {
-            XCTFail("\(error)")
+            XCTFail("Didn't expect: \(error)")
         }
+    }
+    
+    func testDeletingNonExistentKeyFails() {
         
-        do { // Delete
+        let label = randomLabel()
+        let accessControl = EC.AccessControl(protection: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly, flags: [.userPresence, .privateKeyUsage])
+        
+        do { // Create
+            let _ = try EC.PrivateKey.createRandom(label: label, keyType: .secp256r1, accessControl: accessControl, token: .keychain)
+            let _ = try EC.PrivateKey.load(label: label, keyType: .secp256r1, token: .keychain)
             try EC.PrivateKey.delete(label: label, keyType: .secp256r1)
         } catch {
             XCTFail("\(error)")
+        }
+        
+        do { // Create again
+            try EC.PrivateKey.delete(label: label, keyType: .secp256r1)
+            XCTFail("Expected error")
+        } catch let EC.Error.underlying(_, error) {
+            XCTAssertEqual(error.domain, NSOSStatusErrorDomain)
+            XCTAssertEqual(OSStatus(error.code), errSecItemNotFound)
+        } catch {
+            XCTFail("Didn't expect: \(error)")
         }
     }
 }
