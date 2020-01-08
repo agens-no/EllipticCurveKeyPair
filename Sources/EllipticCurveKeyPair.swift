@@ -207,7 +207,9 @@ public enum EllipticCurveKeyPair {
         // The user visible label in the device's key chain
         public let config: Config
         
-        public init() {}
+        public init(config: Config) {
+            self.config = config
+        }
         
         public func getPublicKey() throws -> PublicKey {
             return try Query.getPublicKey(labeled: config.publicLabel, accessGroup: config.publicKeyAccessGroup)
