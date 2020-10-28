@@ -16,5 +16,5 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://github.com/agens-no/EllipticCurveKeyPair.git", :tag => s.version.to_s }
   s.source_files  = "Sources/**/*"
   s.frameworks  = ["Foundation", "LocalAuthentication", "Security"]
-  s.swift_version = '4.2'
+  s.swift_version = '5.0'
 end
