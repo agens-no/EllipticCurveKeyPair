@@ -8,7 +8,7 @@ Pod::Spec.new do |s|
   s.homepage     = "https://github.com/agens-no/EllipticCurveKeyPair"
   s.license      = { :type => "MIT", :file => "LICENSE" }
   s.author       = {
-    "Håvard Fossli" => "hfossli@gmail.com",
+    "Håvard Fossli" => "hfossli@gmail.com",
     "Marcin Krzyżanowski" => "marcin.krzyzanowski@gmail.com"
   }
   s.ios.deployment_target = "9.0"
@@ -16,4 +16,5 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://github.com/agens-no/EllipticCurveKeyPair.git", :tag => s.version.to_s }
   s.source_files  = "Sources/**/*"
   s.frameworks  = ["Foundation", "LocalAuthentication", "Security"]
+  s.swift_version = '4.2'
 end
