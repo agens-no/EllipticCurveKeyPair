@@ -392,11 +392,19 @@ public enum EllipticCurveKeyPair {
             if let accessGroup = accessGroup {
                 params[kSecAttrAccessGroup as String] = accessGroup
             }
-            if let prompt = prompt {
-                params[kSecUseOperationPrompt as String] = prompt
-            }
+            
             if let context = context {
+                if let prompt = prompt {
+                    context.localizedReason = prompt
+                }
                 params[kSecUseAuthenticationContext as String] = context
+            } else {
+                if let prompt = prompt {
+                    let prContext = LAContext()
+                    prContext.localizedReason = prompt
+//                params[kSecUseOperationPrompt as String] = prompt
+                    params[kSecUseAuthenticationContext as String] = prContext
+                }
             }
             return params
         }
@@ -407,12 +415,17 @@ public enum EllipticCurveKeyPair {
             var privateKeyParams: [String: Any] = [
                 kSecAttrLabel as String: config.privateLabel,
                 kSecAttrIsPermanent as String: true,
-                kSecUseAuthenticationUI as String: kSecUseAuthenticationUIAllow,
+//                kSecUseAuthenticationUI as String: kSecUseAuthenticationUIAllow,
                 ]
             if let privateKeyAccessGroup = config.privateKeyAccessGroup {
                 privateKeyParams[kSecAttrAccessGroup as String] = privateKeyAccessGroup
             }
             if let context = context {
+                context.interactionNotAllowed = false
+                privateKeyParams[kSecUseAuthenticationContext as String] = context
+            } else {
+                let locContext = LAContext()
+                locContext.interactionNotAllowed = false
                 privateKeyParams[kSecUseAuthenticationContext as String] = context
             }
             
@@ -641,7 +654,7 @@ public enum EllipticCurveKeyPair {
         }
         
         @available(iOS 10.0, *)
-        private func export() throws -> Data {
+        public func export() throws -> Data {
             var error : Unmanaged<CFError>?
             guard let raw = SecKeyCopyExternalRepresentation(underlying, &error) else {
                 throw EllipticCurveKeyPair.Error.fromError(error?.takeRetainedValue(), message: "Tried reading public key bytes.")
