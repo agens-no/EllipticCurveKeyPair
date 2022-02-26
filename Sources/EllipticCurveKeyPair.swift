@@ -395,13 +395,21 @@ public enum EllipticCurveKeyPair {
             
             if let context = context {
                 if let prompt = prompt {
-                    context.localizedReason = prompt
+                    if #available(iOS 11.0, macOS 10.13,*) {
+                        context.localizedReason = prompt
+                    } else {
+                        // Fallback on earlier versions
+                    }
                 }
                 params[kSecUseAuthenticationContext as String] = context
             } else {
                 if let prompt = prompt {
                     let prContext = LAContext()
-                    prContext.localizedReason = prompt
+                    if #available(iOS 11.0, macOS 10.13,*) {
+                        prContext.localizedReason = prompt
+                    } else {
+                        // Fallback on earlier versions
+                    }
 //                params[kSecUseOperationPrompt as String] = prompt
                     params[kSecUseAuthenticationContext as String] = prContext
                 }
@@ -421,11 +429,19 @@ public enum EllipticCurveKeyPair {
                 privateKeyParams[kSecAttrAccessGroup as String] = privateKeyAccessGroup
             }
             if let context = context {
-                context.interactionNotAllowed = false
+                if #available(iOS 11.0, macOS 10.13,*) {
+                    context.interactionNotAllowed = false
+                } else {
+                    // Fallback on earlier versions
+                }
                 privateKeyParams[kSecUseAuthenticationContext as String] = context
             } else {
                 let locContext = LAContext()
-                locContext.interactionNotAllowed = false
+                if #available(iOS 11.0,macOS 10.13, *) {
+                    locContext.interactionNotAllowed = false
+                } else {
+                    // Fallback on earlier versions
+                }
                 privateKeyParams[kSecUseAuthenticationContext as String] = context
             }
             
@@ -710,12 +726,18 @@ public enum EllipticCurveKeyPair {
         }
         
         public func underlying() throws -> SecAccessControl {
-            if flags.contains(.privateKeyUsage) {
-                let flagsWithOnlyPrivateKeyUsage: SecAccessControlCreateFlags = [.privateKeyUsage]
-                guard flags != flagsWithOnlyPrivateKeyUsage else {
-                    throw EllipticCurveKeyPair.Error.inconcistency(message: "Couldn't create access control flag. Keychain chokes if you try to create access control with only [.privateKeyUsage] on devices older than iOS 11 and macOS 10.13.x")
+            /// use #unavailable later
+            if #available(iOS 11.0,macOS 10.13, *) {
+                
+            } else {
+                if flags.contains(.privateKeyUsage) {
+                    let flagsWithOnlyPrivateKeyUsage: SecAccessControlCreateFlags = [.privateKeyUsage]
+                    guard flags != flagsWithOnlyPrivateKeyUsage else {
+                        throw EllipticCurveKeyPair.Error.inconcistency(message: "Couldn't create access control flag. Keychain chokes if you try to create access control with only [.privateKeyUsage] on devices older than iOS 11 and macOS 10.13.x")
+                    }
                 }
             }
+            
             
             var error: Unmanaged<CFError>?
             let result = SecAccessControlCreateWithFlags(kCFAllocatorDefault, protection, flags, &error)
@@ -832,8 +854,11 @@ public enum EllipticCurveKeyPair {
     public enum Device {
         
         public static var hasTouchID: Bool {
-            if #available(OSX 10.12.2, *) {
-                return LAContext().canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
+            if #available(macOS 10.12.2, *) {
+                var error: NSError?
+                let result = LAContext().canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error)
+                EllipticCurveKeyPair.logger?(String(describing: error))
+                return result
             } else {
                 return false
             }

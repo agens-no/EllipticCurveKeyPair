@@ -31,5 +31,5 @@ xcuserdata/
 *.ipa
 *.dSYM.zip
 *.dSYM
-
+.build
 .DS_Store
